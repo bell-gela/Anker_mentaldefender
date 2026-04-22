@@ -367,13 +367,17 @@
         document.getElementById('global-settings-modal').classList.add('hidden');
     };
 
+    // APIを呼び出す共通関数（修正版）
     async function callGeminiAPI(promptText) {
         const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!apiKey) {
             alert("ホーム画面右上の設定アイコン（≡）からGemini APIキーを登録してください。");
             return "※APIキーが設定されていません。";
         }
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        
+        // 修正：安定稼働している gemini-1.5-flash モデルを指定
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        
         try {
             const response = await fetch(url, {
                 method: "POST",
@@ -381,14 +385,19 @@
                 body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
             });
             const data = await response.json();
+            
+            // API側からエラーが返ってきた場合の詳細表示
             if (data.error) {
                 console.error("API Error Response:", data.error);
-                return "APIキーが間違っているか、エラーが発生しました。設定を確認してください。";
+                alert(`APIエラーが発生しました: ${data.error.message}\n（ステータスコード: ${data.error.code}）`);
+                return "エラーが発生したため、分析を中断しました。設定を確認してください。";
             }
             return data.candidates[0].content.parts[0].text;
+            
         } catch (error) {
             console.error("Fetch Error:", error);
-            return "通信エラーが発生しました。ネットワークを確認してください。";
+            alert("通信エラーが発生しました。ネットワーク接続を確認してください。");
+            return "通信エラーが発生しました。";
         }
     }
 
