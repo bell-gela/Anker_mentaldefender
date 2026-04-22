@@ -18,16 +18,20 @@
             --text-main: #2c3e50; --glass: rgba(255, 255, 255, 0.7);
         }
 
+        /* 画面スクロールを完全に禁止し、物理画面サイズにロック */
         html, body { 
-            margin: 0; padding: 0; width: 100%; height: 100%; height: 100dvh;
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             font-family: 'Avenir Next', sans-serif; color: var(--text-main); 
-            overflow: hidden; background-color: var(--tm-bg); 
+            overflow: hidden; background-color: #000; /* PC用の外枠背景 */
         }
         
+        /* アプリのコンテナも物理画面に完全追従 */
         .app-container { 
-            width: 100%; max-width: 600px; height: 100%; height: 100dvh;
-            margin: 0 auto; position: relative; background: var(--tm-bg); 
-            overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            width: 100%; max-width: 600px; margin: 0 auto; 
+            background: var(--tm-bg); overflow: hidden; 
+            box-shadow: 0 0 30px rgba(0,0,0,0.5);
             display: flex; flex-direction: column; 
         }
         
@@ -37,16 +41,21 @@
         .base-btn:active { transform: scale(0.95); }
         .base-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        .screen-container { flex-grow: 1; position: relative; overflow: hidden; }
+        /* コンテンツ領域（タブバーの上までを動的に埋める） */
+        .screen-container { 
+            flex-grow: 1; position: relative; overflow: hidden; width: 100%; 
+        }
 
+        /* 各画面のスクロール設定 */
         .screen { 
-            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
             display: flex; flex-direction: column; align-items: center; 
             overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 1; 
             padding-bottom: 40px; box-sizing: border-box;
         }
         .content-width { width: 90%; max-width: 500px; margin-top: 25px; }
         
+        /* ヘッダー（ノッチ回避） */
         .header { 
             width: 100%; padding: calc(15px + env(safe-area-inset-top)) 0 15px 0; 
             display: flex; align-items: center; justify-content: space-between; 
@@ -55,14 +64,16 @@
         }
         .screen-title { font-size: 1.3rem; font-weight: 900; margin-left: 20px; flex-grow: 1; letter-spacing: 1px; }
 
+        /* ボトムナビゲーション（絶対に最下部に固定される設計） */
         .bottom-nav { 
-            flex-shrink: 0; width: 100%; padding-bottom: env(safe-area-inset-bottom); 
+            flex-shrink: 0; width: 100%; 
+            padding-bottom: env(safe-area-inset-bottom); /* iOSホームバー回避 */
             height: calc(65px + env(safe-area-inset-bottom)); 
             background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             display: flex; justify-content: space-around; align-items: center; 
             border-top: 1px solid rgba(0,0,0,0.1); z-index: 50; box-sizing: border-box; 
         }
-        .nav-item { text-align: center; font-size: 1.3rem; cursor: pointer; color: #a0a0a0; transition: 0.2s; flex: 1; -webkit-tap-highlight-color: transparent; }
+        .nav-item { text-align: center; font-size: 1.4rem; cursor: pointer; color: #a0a0a0; transition: 0.2s; flex: 1; -webkit-tap-highlight-color: transparent; }
         .nav-item span { display: block; font-size: 0.65rem; font-weight: bold; margin-top: 3px; }
         .nav-item.active { color: var(--tm-cyan); }
 
@@ -155,6 +166,7 @@
 <div class="app-container">
 
     <div class="screen-container">
+        
         <div id="home-screen" class="screen">
             <div class="hamburger-icon" onclick="openGlobalSettings()">
                 <span></span>
@@ -366,20 +378,18 @@
             </div>
         </div>
 
-    </div><nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('home-screen', this)">🏠<span>Home</span></div>
-        <div class="nav-item" onclick="switchTab('taskgo-screen', this)">📋<span>Task</span></div>
-        <div class="nav-item" onclick="switchTab('scan-screen', this)">👁️<span>Scan</span></div>
-        <div class="nav-item" onclick="switchTab('bemagical-screen', this)">✨<span>Magic</span></div>
-        <div class="nav-item" onclick="switchTab('mood-screen', this)">🌡️<span>Mood</span></div>
-        <div class="nav-item" onclick="switchTab('journal-screen', this)">🌊<span>Journal</span></div>
+    </div> <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home-screen', this)">🤍<span>Home</span></div>
+        <div class="nav-item" onclick="switchTab('taskgo-screen', this)">🩹<span>Task</span></div>
+        <div class="nav-item" onclick="switchTab('scan-screen', this)">🩺<span>Scan</span></div>
+        <div class="nav-item" onclick="switchTab('bemagical-screen', this)">🏰<span>Magic</span></div>
+        <div class="nav-item" onclick="switchTab('mood-screen', this)">🔋<span>Mood</span></div>
+        <div class="nav-item" onclick="switchTab('journal-screen', this)">☁️<span>Journal</span></div>
     </nav>
 
-</div>
-
-<script>
+</div> <script>
     // ==========================================
-    // 🔑 GEMINI API KEY MANAGEMENT (プロキシ完全排除・直接通信版)
+    // 🔑 GEMINI API KEY MANAGEMENT
     // ==========================================
     const LOCAL_STORAGE_KEY = 'anchor_gemini_api_key';
     
@@ -399,7 +409,6 @@
         document.getElementById('global-settings-modal').classList.add('hidden');
     };
 
-    // V11の安定した直接通信ロジックを復元
     async function callGeminiAPI(promptText) {
         const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!apiKey) {
@@ -407,7 +416,7 @@
             return "※APIキーが設定されていません。";
         }
         
-        // v1 エンドポイントへ直接通信
+        // 直接Google APIを叩く（v1）
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
         try {
@@ -418,10 +427,9 @@
             });
             
             if (!response.ok) {
-                // 403 Forbidden や 400 Bad Request をキャッチ
                 const errData = await response.json().catch(() => ({}));
                 console.error("HTTP Error:", response.status, errData);
-                return `【通信エラー (${response.status})】\nAPIキーが間違っているか、Google CloudでAPIが有効化されていません。設定を見直してください。`;
+                return `【通信エラー (${response.status})】\nAPIキーが間違っているか、Google CloudでAPIが有効化されていません。`;
             }
 
             const data = await response.json();
@@ -435,7 +443,7 @@
             
         } catch (error) {
             console.error("Fetch/Network Error:", error);
-            return `【ネットワークエラー】\n通信がブロックされました。\n※iPhoneのファイルアプリ等から開いている場合、iOSのセキュリティ制限(CORS)によりAPI通信が遮断されます。このツールはサーバー(Vercelなど)にデプロイして使用してください。`;
+            return `【ネットワークエラー】\n通信がブロックされました。\n※iPhoneのファイルアプリ等から開いている場合、iOSのセキュリティ制限(CORS)によりAPI通信が遮断されます。このツールはサーバーにデプロイして使用してください。`;
         }
     }
 
@@ -622,14 +630,6 @@
             【入力】: ${text}`;
             
             const result = await callGeminiAPI(prompt);
-            
-            // エラーテキスト（【ネットワークエラー】等）が返ってきた場合の文字色調整
-            if(result.includes("【")) {
-                document.getElementById('scan-res-text').style.color = "#ff5252";
-            } else {
-                document.getElementById('scan-res-text').style.color = "var(--sc-turq-light)";
-            }
-            
             document.getElementById('scan-res-text').innerText = result;
             btn.disabled = false;
         }, 8000);
@@ -671,14 +671,6 @@
         const aiMessage = await callGeminiAPI(prompt);
 
         document.getElementById('mood-popup-msg').innerText = aiMessage;
-        
-        // エラーテキストが返ってきた場合の文字色調整
-        if(aiMessage.includes("【")) {
-            document.getElementById('mood-popup-msg').style.color = "#ff5252";
-        } else {
-            document.getElementById('mood-popup-msg').style.color = "#555";
-        }
-
         document.getElementById('mood-popup').classList.remove('hidden');
         document.getElementById('mood-popup').style.display = 'flex';
 
