@@ -69,7 +69,7 @@
         @keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
         .baymax-eye { display: inline-block; animation: blink 5s infinite; }
         @keyframes loadingPulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
-        .loading-text { animation: loadingPulse 1.5s infinite; font-weight: bold; }
+        .loading-text { animation: loadingPulse 1.5s infinite; font-weight: bold; color: inherit; }
 
         /* --- HOME --- */
         #home-screen { background-image: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.05) 0%, transparent 80%), linear-gradient(180deg, #fff 0%, #d1d9e6 100%); justify-content: center; position: relative; }
@@ -379,7 +379,7 @@
 
 <script>
     // ==========================================
-    // 🔑 GEMINI API KEY MANAGEMENT (CORS & Error Handling 強化版)
+    // 🔑 GEMINI API KEY MANAGEMENT (プロキシ完全排除・直接通信版)
     // ==========================================
     const LOCAL_STORAGE_KEY = 'anchor_gemini_api_key';
     
@@ -399,6 +399,7 @@
         document.getElementById('global-settings-modal').classList.add('hidden');
     };
 
+    // V11の安定した直接通信ロジックを復元
     async function callGeminiAPI(promptText) {
         const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!apiKey) {
@@ -406,45 +407,35 @@
             return "※APIキーが設定されていません。";
         }
         
+        // v1 エンドポイントへ直接通信
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
-        // より安定した代替プロキシ（cors-anywhereが弾かれる場合への対応）
-        const proxyUrl = 'https://api.allorigins.win/raw?url=';
-        const fetchUrl = proxyUrl + encodeURIComponent(targetUrl);
-        
         try {
-            const response = await fetch(fetchUrl, {
+            const response = await fetch(url, {
                 method: "POST",
-                headers: { 
-                    "Content-Type": "application/json"
-                },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
             });
-
-            // レスポンスのステータスチェック
+            
             if (!response.ok) {
-                console.error("HTTP Error:", response.status, response.statusText);
-                return `【通信エラー】APIサーバーからの応答がありませんでした。(Status: ${response.status})\nAPIキーが正しいか、またはプロキシの制限の可能性があります。`;
+                // 403 Forbidden や 400 Bad Request をキャッチ
+                const errData = await response.json().catch(() => ({}));
+                console.error("HTTP Error:", response.status, errData);
+                return `【通信エラー (${response.status})】\nAPIキーが間違っているか、Google CloudでAPIが有効化されていません。設定を見直してください。`;
             }
 
             const data = await response.json();
             
-            // データ構造の欠落チェック（ここで落ちている可能性が高い）
             if (data.error) {
                 console.error("API Error Response:", data.error);
                 return `【APIエラー】\n${data.error.message}\n(Code: ${data.error.code})`;
-            }
-
-            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
-                console.error("Unexpected Data Structure:", data);
-                return "【データパースエラー】\nAPIからの返答が予期せぬ形式でした。コンソールを確認してください。";
             }
 
             return data.candidates[0].content.parts[0].text;
             
         } catch (error) {
             console.error("Fetch/Network Error:", error);
-            return `【ネットワークエラー】\n詳細: ${error.message}\n\n※セキュリティ制限で通信がブロックされました。iPhoneの場合はブラウザの制限によるものです。`;
+            return `【ネットワークエラー】\n通信がブロックされました。\n※iPhoneのファイルアプリ等から開いている場合、iOSのセキュリティ制限(CORS)によりAPI通信が遮断されます。このツールはサーバー(Vercelなど)にデプロイして使用してください。`;
         }
     }
 
@@ -631,6 +622,14 @@
             【入力】: ${text}`;
             
             const result = await callGeminiAPI(prompt);
+            
+            // エラーテキスト（【ネットワークエラー】等）が返ってきた場合の文字色調整
+            if(result.includes("【")) {
+                document.getElementById('scan-res-text').style.color = "#ff5252";
+            } else {
+                document.getElementById('scan-res-text').style.color = "var(--sc-turq-light)";
+            }
+            
             document.getElementById('scan-res-text').innerText = result;
             btn.disabled = false;
         }, 8000);
@@ -672,6 +671,14 @@
         const aiMessage = await callGeminiAPI(prompt);
 
         document.getElementById('mood-popup-msg').innerText = aiMessage;
+        
+        // エラーテキストが返ってきた場合の文字色調整
+        if(aiMessage.includes("【")) {
+            document.getElementById('mood-popup-msg').style.color = "#ff5252";
+        } else {
+            document.getElementById('mood-popup-msg').style.color = "#555";
+        }
+
         document.getElementById('mood-popup').classList.remove('hidden');
         document.getElementById('mood-popup').style.display = 'flex';
 
