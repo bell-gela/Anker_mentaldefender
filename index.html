@@ -18,7 +18,6 @@
             --text-main: #2c3e50; --glass: rgba(255, 255, 255, 0.7);
         }
 
-        /* 100dvh を使用してスマホのUIバーを考慮した全画面表示に */
         body, html { margin: 0; padding: 0; height: 100%; height: 100dvh; font-family: 'Avenir Next', sans-serif; color: var(--text-main); overflow: hidden; background: #1a1a1a; }
         .app-container { width: 100%; max-width: 600px; height: 100%; height: 100dvh; margin: 0 auto; position: relative; background: var(--tm-bg); overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
         
@@ -28,15 +27,14 @@
         .base-btn:active { transform: scale(0.95); }
         .base-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        /* ボトムナビとセーフエリアを考慮したpadding */
         .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; overflow-y: auto; z-index: 1; padding-bottom: calc(90px + env(safe-area-inset-bottom)); box-sizing: border-box; }
         .content-width { width: 90%; max-width: 500px; margin-top: 25px; }
         
-        /* ヘッダーのセーフエリア考慮 */
         .header { width: 100%; padding: calc(15px + env(safe-area-inset-top)) 0 15px 0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
         .screen-title { font-size: 1.3rem; font-weight: 900; margin-left: 20px; flex-grow: 1; letter-spacing: 1px; }
 
-        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: calc(65px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 50; }
+        /* UI修正：box-sizing: border-boxを追加し、下部の黒帯を解消 */
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: calc(65px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 50; box-sizing: border-box; }
         .nav-item { text-align: center; font-size: 1.3rem; cursor: pointer; color: #888; transition: 0.2s; flex: 1; }
         .nav-item span { display: block; font-size: 0.65rem; font-weight: bold; margin-top: 3px; }
         .nav-item.active { color: var(--tm-cyan); }
@@ -54,11 +52,9 @@
         #baymax-msg { padding: 15px 25px; margin-top: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.5); width: 80%; margin-left: auto; margin-right: auto; min-height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.5; transition: opacity 0.5s ease; }
         .emergency-btn { margin-top: 40px; padding: 15px 40px; border-radius: 30px; background: var(--tm-silver); color: var(--tm-cyan); font-size: 1.1rem; border: 2px solid var(--tm-cyan); box-shadow: 0 5px 20px rgba(0,229,255,0.3); letter-spacing: 2px; }
         
-        /* Hamburger Menu Icon */
         .hamburger-icon { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; width: 30px; height: 20px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 20; padding: 5px; }
         .hamburger-icon span { display: block; width: 100%; height: 3px; background-color: var(--text-main); border-radius: 2px; }
 
-        /* Global Settings Modal */
         #global-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:150; flex-direction:column; padding-top: calc(60px + env(safe-area-inset-top)); }
         .global-setting-card { background: #fff; border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 
@@ -375,6 +371,7 @@
         document.getElementById('global-settings-modal').classList.add('hidden');
     };
 
+    // API呼び出しの修正 (v1)
     async function callGeminiAPI(promptText) {
         const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!apiKey) {
@@ -382,8 +379,8 @@
             return "※APIキーが設定されていません。";
         }
         
-        // 安定稼働の gemini-1.5-flash モデルを指定
-        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        // 安定稼働の gemini-1.5-flash モデル v1 エンドポイント
+        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
         try {
             const response = await fetch(url, {
@@ -429,7 +426,6 @@
     // --- Baymax Auto Quote (10秒ごと) ---
     const changeHomeQuote = () => {
         const msgEl = document.getElementById('baymax-msg');
-        // フェードアウト効果
         msgEl.style.opacity = 0;
         setTimeout(() => {
             const qs = [
@@ -441,11 +437,9 @@
                 "私はいつでもここにいます。"
             ];
             msgEl.innerText = qs[Math.floor(Math.random()*qs.length)];
-            // フェードイン効果
             msgEl.style.opacity = 1;
         }, 500);
     };
-    // 初回と10秒ごとの自動実行
     setInterval(changeHomeQuote, 10000);
 
     const toggleSOS = (show) => document.getElementById('sos-overlay').classList.toggle('hidden', !show);
