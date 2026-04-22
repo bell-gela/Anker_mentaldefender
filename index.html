@@ -18,21 +18,34 @@
             --text-main: #2c3e50; --glass: rgba(255, 255, 255, 0.7);
         }
 
-        /* 画面スクロールを完全に禁止し、物理画面サイズにロック */
+        /* 画面全体のスクロールを止め、高さを100%に固定 */
         html, body { 
             margin: 0; padding: 0; width: 100%; height: 100%; 
-            position: fixed; top: 0; left: 0; right: 0; bottom: 0;
             font-family: 'Avenir Next', sans-serif; color: var(--text-main); 
-            overflow: hidden; background-color: #000; /* PC用の外枠背景 */
+            overflow: hidden; background-color: #000; /* PC用の外枠黒背景 */
         }
         
-        /* アプリのコンテナも物理画面に完全追従 */
+        /* Flexboxによる確実な上下分割レイアウト */
         .app-container { 
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
-            width: 100%; max-width: 600px; margin: 0 auto; 
-            background: var(--tm-bg); overflow: hidden; 
-            box-shadow: 0 0 30px rgba(0,0,0,0.5);
-            display: flex; flex-direction: column; 
+            width: 100%; max-width: 600px; height: 100%; 
+            margin: 0 auto; background: var(--tm-bg); 
+            display: flex; flex-direction: column; position: relative;
+        }
+        
+        /* タブバー以外の残りの領域をすべて占有するコンテナ */
+        .screen-container { 
+            flex: 1; /* 空間をすべて埋める */
+            position: relative; 
+            overflow: hidden; 
+            width: 100%; 
+        }
+
+        /* 各スクリーンの設定（親のscreen-containerの中でスクロールする） */
+        .screen { 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+            display: flex; flex-direction: column; align-items: center; 
+            overflow-y: auto; -webkit-overflow-scrolling: touch; 
+            padding-bottom: 20px; /* スクロール最下部の余白 */
         }
         
         .hidden { display: none !important; }
@@ -41,18 +54,6 @@
         .base-btn:active { transform: scale(0.95); }
         .base-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        /* コンテンツ領域（タブバーの上までを動的に埋める） */
-        .screen-container { 
-            flex-grow: 1; position: relative; overflow: hidden; width: 100%; 
-        }
-
-        /* 各画面のスクロール設定 */
-        .screen { 
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
-            display: flex; flex-direction: column; align-items: center; 
-            overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 1; 
-            padding-bottom: 40px; box-sizing: border-box;
-        }
         .content-width { width: 90%; max-width: 500px; margin-top: 25px; }
         
         /* ヘッダー（ノッチ回避） */
@@ -64,14 +65,15 @@
         }
         .screen-title { font-size: 1.3rem; font-weight: 900; margin-left: 20px; flex-grow: 1; letter-spacing: 1px; }
 
-        /* ボトムナビゲーション（絶対に最下部に固定される設計） */
+        /* ボトムナビゲーション（絶対に画面の最下部に留まる） */
         .bottom-nav { 
-            flex-shrink: 0; width: 100%; 
+            flex-shrink: 0; /* 縮小させない */
+            width: 100%; 
             padding-bottom: env(safe-area-inset-bottom); /* iOSホームバー回避 */
             height: calc(65px + env(safe-area-inset-bottom)); 
             background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             display: flex; justify-content: space-around; align-items: center; 
-            border-top: 1px solid rgba(0,0,0,0.1); z-index: 50; box-sizing: border-box; 
+            border-top: 1px solid rgba(0,0,0,0.1); z-index: 50; 
         }
         .nav-item { text-align: center; font-size: 1.4rem; cursor: pointer; color: #a0a0a0; transition: 0.2s; flex: 1; -webkit-tap-highlight-color: transparent; }
         .nav-item span { display: block; font-size: 0.65rem; font-weight: bold; margin-top: 3px; }
@@ -83,7 +85,7 @@
         .loading-text { animation: loadingPulse 1.5s infinite; font-weight: bold; color: inherit; }
 
         /* --- HOME --- */
-        #home-screen { background-image: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.05) 0%, transparent 80%), linear-gradient(180deg, #fff 0%, #d1d9e6 100%); justify-content: center; position: relative; }
+        #home-screen { background-image: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.05) 0%, transparent 80%), linear-gradient(180deg, #fff 0%, #d1d9e6 100%); justify-content: center; }
         .clock-container { text-align: center; margin-bottom: 20px; }
         .live-date { font-size: 1rem; color: #666; font-weight: 600; letter-spacing: 1px; }
         .live-time { font-size: 2.8rem; font-weight: 300; letter-spacing: 4px; color: var(--text-main); margin-top: 5px; }
@@ -93,7 +95,8 @@
         .hamburger-icon { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; width: 30px; height: 20px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 20; padding: 5px; }
         .hamburger-icon span { display: block; width: 100%; height: 3px; background-color: var(--text-main); border-radius: 2px; }
 
-        #global-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:150; flex-direction:column; padding-top: calc(60px + env(safe-area-inset-top)); }
+        /* --- Global Settings Modal --- */
+        #global-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; flex-direction:column; padding-top: calc(60px + env(safe-area-inset-top)); }
         .global-setting-card { background: #fff; border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 
         /* --- TASK GO --- */
@@ -105,10 +108,10 @@
         .ts-analyze-btn { padding: 18px; background: var(--ts-red); color: #fff; font-size: 1.1rem; box-shadow: 0 6px 0 #b31217; width: 100%; }
 
         /* --- BE MAGICAL --- */
-        #bemagical-screen { background: linear-gradient(180deg, #020024 0%, var(--fm-night) 60%, #000 100%); color: #e0e0e0; position: relative; }
+        #bemagical-screen { background: linear-gradient(180deg, #020024 0%, var(--fm-night) 60%, #000 100%); color: #e0e0e0; }
         #bemagical-screen .screen-title { color: transparent; background: linear-gradient(45deg, var(--fm-gold), #fff, var(--fm-gold)); -webkit-background-clip: text; text-shadow: 0 0 15px var(--fm-gold); }
         .setting-icon { font-size: 1.5rem; cursor: pointer; margin-right: 20px; position: relative; }
-        #magic-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; flex-direction:column; padding-top: calc(40px + env(safe-area-inset-top)); }
+        #magic-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; flex-direction:column; padding-top: calc(40px + env(safe-area-inset-top)); }
         .magic-setting-card { background: var(--fm-night); border: 2px solid var(--fm-gold); border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; color: #fff; box-shadow: 0 0 30px rgba(255,215,0,0.2); }
         .setting-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--fm-blue); background: rgba(255,255,255,0.1); color: #fff; box-sizing: border-box; font-size: 1rem; margin-top: 8px; -webkit-appearance: none;}
         .fm-card { background: rgba(10,10,40,0.7); border: 1px solid rgba(255,215,0,0.3); border-radius: 15px; padding: 18px; margin-bottom: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -128,14 +131,13 @@
         .cc-time-btn.active { background: var(--cc-wood); color: #fff; }
         #journal-input { width: 100%; box-sizing: border-box; min-height: 40vh; resize: none; border: 2px solid rgba(123,107,97,0.2); background: rgba(255,255,255,0.5); padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.6; transition: 1s; -webkit-appearance: none;}
         .fog-fade { filter: blur(10px); opacity: 0; transition: filter 4s, opacity 4s; }
-        #journal-counter-display { margin-top: 15px; color: var(--cc-dark); font-weight: bold; font-size: 0.9rem; text-align: center; }
 
         /* --- SCAN --- */
         #scan-screen { background: var(--sc-bg); color: var(--sc-turq-light); background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,180,216,0.03) 2px, rgba(0,180,216,0.03) 4px); }
         #scan-screen .screen-title { color: var(--sc-turq); text-align: center; margin-left: 0; }
         .sc-panel { background: rgba(0, 180, 216, 0.08); padding: 20px; border-radius: 15px; border: 1px solid var(--sc-turq); text-align: center; }
         #scan-input { width: 100%; box-sizing: border-box; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--sc-turq); color: var(--sc-turq-light); border-radius: 10px; resize: none; font-size: 1rem; -webkit-appearance: none;}
-        #breathe-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(13,27,42,0.98); z-index: 100; flex-direction: column; }
+        #breathe-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(13,27,42,0.98); z-index: 1000; flex-direction: column; }
         .breathe-circle { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, var(--sc-turq) 0%, transparent 80%); transition: 4s ease-in-out; border: 1px solid var(--sc-turq); box-shadow: 0 0 30px var(--sc-turq); }
 
         /* --- MOOD LOG --- */
@@ -149,12 +151,11 @@
         .ml-tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
         .ml-tag { padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; cursor: pointer; color: #555; -webkit-tap-highlight-color: transparent;}
         .ml-tag.active { background: var(--ml-blue); color: #fff; border-color: var(--ml-blue); }
-        
-        #mood-popup { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; flex-direction:column; padding-top: calc(20px + env(safe-area-inset-top)); }
+        #mood-popup { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; flex-direction:column; padding-top: calc(20px + env(safe-area-inset-top)); }
         .mood-popup-card { background: #fff; border-radius: 20px; padding: 30px; width: 80%; max-width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 
         /* --- SOS OVERLAY --- */
-        #sos-overlay { background: linear-gradient(270deg, #e0f2f1, #b2dfdb, #80cbc4, #e0f2f1); background-size: 800% 800%; animation: waveGradient 8s ease infinite; z-index: 200; flex-direction: column; }
+        #sos-overlay { background: linear-gradient(270deg, #e0f2f1, #b2dfdb, #80cbc4, #e0f2f1); background-size: 800% 800%; animation: waveGradient 8s ease infinite; z-index: 1000; flex-direction: column; position: absolute; top:0; left:0; width:100%; height:100%; }
         @keyframes waveGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .ticker-wrapper { position: absolute; width: 100%; height: 35px; overflow: hidden; display: flex; align-items: center; }
         .ticker-text { white-space: nowrap; font-size: 1.5rem; color: #78909c; font-weight: 900; animation: scrollTickerText 15s linear infinite; }
@@ -185,23 +186,6 @@
             </div>
 
             <button class="flex-center base-btn emergency-btn" onclick="toggleSOS(true)">EMERGENCY SOS</button>
-        </div>
-
-        <div id="global-settings-modal" class="hidden flex-center">
-            <div class="global-setting-card">
-                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main);">⚙️ System Settings</div>
-                
-                <div style="margin-bottom: 15px;">
-                    <span style="font-size: 0.9rem; color: #555; font-weight: bold;">Gemini API Key</span>
-                    <input type="password" id="api-key-input" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #fafafa; color: #333; box-sizing: border-box; font-size: 1rem; margin-top: 8px;" placeholder="AIzaSy...">
-                    <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">※APIキーはブラウザにのみ保存され、外部には送信されません。</div>
-                </div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 30px;">
-                    <button class="base-btn" style="flex:1; padding:12px; background:#ddd; color:#333;" onclick="closeGlobalSettings(false)">キャンセル</button>
-                    <button class="base-btn" style="flex:1; padding:12px; background:var(--tm-cyan); color:#fff;" onclick="closeGlobalSettings(true)">保存</button>
-                </div>
-            </div>
         </div>
 
         <div id="taskgo-screen" class="screen hidden">
@@ -248,36 +232,6 @@
             </div>
         </div>
 
-        <div id="magic-settings-modal" class="hidden flex-center">
-            <div class="magic-setting-card">
-                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--fm-gold);">⚙️ Magic Settings</div>
-                
-                <div style="margin-bottom: 15px;">
-                    <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">インパーク予定日</span>
-                    <input type="date" id="setting-date" class="setting-input" value="2026-06-12">
-                </div>
-                
-                <div style="margin-bottom: 20px;">
-                    <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">花火の演出時間 (秒)</span>
-                    <input type="number" id="setting-fw-time" class="setting-input" min="1" max="10" value="3">
-                </div>
-
-                <div style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(0,191,255,0.3);">
-                    <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold; display:block; margin-bottom:8px;">ルーティンの編集</span>
-                    <div id="settings-routine-list" style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;"></div>
-                    <div style="display: flex; gap: 10px;">
-                        <input type="text" id="new-routine-input" class="setting-input" style="margin-top:0;" placeholder="新しいルーティンを追加...">
-                        <button class="base-btn" style="background:var(--fm-blue); color:#fff; padding:0 15px;" onclick="addRoutine()">＋</button>
-                    </div>
-                </div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button class="base-btn" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); color:#fff;" onclick="closeMagicSettings(false)">キャンセル</button>
-                    <button class="base-btn" style="flex:1; padding:12px; background:var(--fm-gold); color:#000;" onclick="closeMagicSettings(true)">保存</button>
-                </div>
-            </div>
-        </div>
-
         <div id="journal-screen" class="screen hidden">
             <div class="header"><div class="screen-title">Journal</div></div>
             <div class="content-width flex-center" style="gap:10px;">
@@ -288,7 +242,7 @@
             <div id="j-timer" style="font-size:2.5rem; margin-top:15px; color:var(--cc-dark); font-weight:300;">00:00</div>
             
             <div class="content-width"><textarea id="journal-input" placeholder="頭の中のキャッシュを全て書き出してください..." disabled></textarea></div>
-            <div id="journal-counter-display">これまでに海に流した思考: 0回</div>
+            <div id="journal-counter-display" style="margin-top: 15px; color: var(--cc-dark); font-weight: bold; font-size: 0.9rem; text-align: center;">これまでに海に流した思考: 0回</div>
 
             <div id="j-msg" class="hidden" style="text-align:center; color:var(--cc-dark); margin-top:20px;">
                 <div style="font-size:2rem;">🌊</div>
@@ -307,10 +261,6 @@
                 <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--sc-bg); padding:0 10px; color:var(--sc-turq); font-size:0.8rem;">AI REFRAMED</div>
                 <div id="scan-res-text" style="line-height:1.6; font-size:0.95rem; white-space: pre-wrap; text-align: left;"></div>
             </div>
-        </div>
-        <div id="breathe-overlay" class="hidden flex-center">
-            <div style="color:var(--sc-turq); text-align:center; margin-bottom:40px;">[ SYNCING HEART RATE ]<br><span style="font-weight:normal; opacity:0.7;">自律神経を同期しています...</span></div>
-            <div id="b-circle" class="breathe-circle flex-center">...</div>
         </div>
 
         <div id="mood-screen" class="screen hidden">
@@ -353,32 +303,78 @@
             </div>
         </div>
 
-        <div id="mood-popup" class="hidden flex-center">
-            <div class="mood-popup-card">
-                <div style="font-size: 40px;">（⚫︎ー⚫︎）</div>
-                <div id="mood-popup-msg" style="margin: 20px 0; font-weight: bold; color: #555; line-height: 1.6; white-space: pre-wrap;"></div>
-                <button class="base-btn" style="padding: 10px 30px; background: var(--ml-blue); color: #fff;" onclick="document.getElementById('mood-popup').classList.add('hidden')">OK</button>
+        </div> <div id="global-settings-modal" class="hidden flex-center">
+        <div class="global-setting-card">
+            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main);">⚙️ System Settings</div>
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 0.9rem; color: #555; font-weight: bold;">Gemini API Key</span>
+                <input type="password" id="api-key-input" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #fafafa; color: #333; box-sizing: border-box; font-size: 1rem; margin-top: 8px;" placeholder="AIzaSy...">
+                <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">※APIキーはブラウザにのみ保存され、外部には送信されません。</div>
+            </div>
+            <div style="display: flex; gap: 10px; margin-top: 30px;">
+                <button class="base-btn" style="flex:1; padding:12px; background:#ddd; color:#333;" onclick="closeGlobalSettings(false)">キャンセル</button>
+                <button class="base-btn" style="flex:1; padding:12px; background:var(--tm-cyan); color:#fff;" onclick="closeGlobalSettings(true)">保存</button>
             </div>
         </div>
+    </div>
 
-        <div id="sos-overlay" class="screen flex-center hidden" onclick="toggleSOS(false)">
-            <div class="ticker-wrapper" style="top:calc(60px + env(safe-area-inset-top));">
-                <div class="ticker-text">
-                    WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
-                    WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
+    <div id="magic-settings-modal" class="hidden flex-center">
+        <div class="magic-setting-card">
+            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--fm-gold);">⚙️ Magic Settings</div>
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">インパーク予定日</span>
+                <input type="date" id="setting-date" class="setting-input" value="2026-06-12">
+            </div>
+            <div style="margin-bottom: 20px;">
+                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">花火の演出時間 (秒)</span>
+                <input type="number" id="setting-fw-time" class="setting-input" min="1" max="10" value="3">
+            </div>
+            <div style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(0,191,255,0.3);">
+                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold; display:block; margin-bottom:8px;">ルーティンの編集</span>
+                <div id="settings-routine-list" style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-routine-input" class="setting-input" style="margin-top:0;" placeholder="新しいルーティンを追加...">
+                    <button class="base-btn" style="background:var(--fm-blue); color:#fff; padding:0 15px;" onclick="addRoutine()">＋</button>
                 </div>
             </div>
-            <div style="font-size:60px;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
-            <div style="text-align:center; color:#546e7a; margin-top:20px; line-height:1.8; font-weight: bold;">大丈夫ですよ。<br>ゆっくりと深呼吸をしましょう。</div>
-            <div class="ticker-wrapper" style="bottom:calc(60px + env(safe-area-inset-bottom));">
-                <div class="ticker-text">
-                    Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
-                    Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
-                </div>
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="base-btn" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); color:#fff;" onclick="closeMagicSettings(false)">キャンセル</button>
+                <button class="base-btn" style="flex:1; padding:12px; background:var(--fm-gold); color:#000;" onclick="closeMagicSettings(true)">保存</button>
             </div>
         </div>
+    </div>
 
-    </div> <nav class="bottom-nav">
+    <div id="mood-popup" class="hidden flex-center">
+        <div class="mood-popup-card">
+            <div style="font-size: 40px;">（⚫︎ー⚫︎）</div>
+            <div id="mood-popup-msg" style="margin: 20px 0; font-weight: bold; color: #555; line-height: 1.6; white-space: pre-wrap;"></div>
+            <button class="base-btn" style="padding: 10px 30px; background: var(--ml-blue); color: #fff;" onclick="document.getElementById('mood-popup').classList.add('hidden')">OK</button>
+        </div>
+    </div>
+
+    <div id="breathe-overlay" class="hidden flex-center">
+        <div style="color:var(--sc-turq); text-align:center; margin-bottom:40px;">[ SYNCING HEART RATE ]<br><span style="font-weight:normal; opacity:0.7;">自律神経を同期しています...</span></div>
+        <div id="b-circle" class="breathe-circle flex-center">...</div>
+    </div>
+
+    <div id="sos-overlay" class="screen flex-center hidden" onclick="toggleSOS(false)">
+        <div class="ticker-wrapper" style="top:calc(60px + env(safe-area-inset-top));">
+            <div class="ticker-text">
+                WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
+                WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
+            </div>
+        </div>
+        <div style="font-size:60px;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
+        <div style="text-align:center; color:#546e7a; margin-top:20px; line-height:1.8; font-weight: bold;">大丈夫ですよ。<br>ゆっくりと深呼吸をしましょう。</div>
+        <div class="ticker-wrapper" style="bottom:calc(60px + env(safe-area-inset-bottom));">
+            <div class="ticker-text">
+                Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
+                Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('home-screen', this)">🤍<span>Home</span></div>
         <div class="nav-item" onclick="switchTab('taskgo-screen', this)">🩹<span>Task</span></div>
         <div class="nav-item" onclick="switchTab('scan-screen', this)">🩺<span>Scan</span></div>
@@ -416,8 +412,9 @@
             return "※APIキーが設定されていません。";
         }
         
-        // 直接Google APIを叩く（v1）
+        // v1 エンドポイントへ直接通信
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+
         
         try {
             const response = await fetch(url, {
@@ -630,6 +627,10 @@
             【入力】: ${text}`;
             
             const result = await callGeminiAPI(prompt);
+            
+            if(result.includes("【")) { document.getElementById('scan-res-text').style.color = "#ff5252"; } 
+            else { document.getElementById('scan-res-text').style.color = "var(--sc-turq-light)"; }
+            
             document.getElementById('scan-res-text').innerText = result;
             btn.disabled = false;
         }, 8000);
@@ -671,6 +672,10 @@
         const aiMessage = await callGeminiAPI(prompt);
 
         document.getElementById('mood-popup-msg').innerText = aiMessage;
+        
+        if(aiMessage.includes("【")) { document.getElementById('mood-popup-msg').style.color = "#ff5252"; } 
+        else { document.getElementById('mood-popup-msg').style.color = "#555"; }
+
         document.getElementById('mood-popup').classList.remove('hidden');
         document.getElementById('mood-popup').style.display = 'flex';
 
