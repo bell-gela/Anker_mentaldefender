@@ -2,11 +2,11 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover, maximum-scale=1.0, user-scalable=no">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f0f4f7">
-    <title>Anchor - Mental Anchor Tool</title>
+    <title>Anchor - Mental Anchor</title>
     <style>
         :root {
             --tm-bg: #f0f4f7; --tm-cyan: #00e5ff; --tm-silver: linear-gradient(145deg, #e6e9ef, #ffffff);
@@ -18,8 +18,19 @@
             --text-main: #2c3e50; --glass: rgba(255, 255, 255, 0.7);
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; height: 100dvh; font-family: 'Avenir Next', sans-serif; color: var(--text-main); overflow: hidden; background: #1a1a1a; }
-        .app-container { width: 100%; max-width: 600px; height: 100%; height: 100dvh; margin: 0 auto; position: relative; background: var(--tm-bg); overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        /* 画面全体の余白を消し、iOS特有のバウンススクロール時の黒背景を白系に変更 */
+        html, body { 
+            margin: 0; padding: 0; width: 100%; height: 100%; 
+            min-height: -webkit-fill-available; /* iOS Safariハック */
+            font-family: 'Avenir Next', sans-serif; color: var(--text-main); 
+            overflow: hidden; background-color: var(--tm-bg); 
+        }
+        
+        .app-container { 
+            width: 100%; max-width: 600px; height: 100%; min-height: 100vh; min-height: -webkit-fill-available;
+            margin: 0 auto; position: relative; background: var(--tm-bg); 
+            overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.1); 
+        }
         
         .hidden { display: none !important; }
         .flex-center { display: flex; justify-content: center; align-items: center; }
@@ -27,15 +38,35 @@
         .base-btn:active { transform: scale(0.95); }
         .base-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; overflow-y: auto; z-index: 1; padding-bottom: calc(90px + env(safe-area-inset-bottom)); box-sizing: border-box; }
+        /* 画面のスクロール領域（ボトムナビの裏に隠れないようにpadding-bottomを設定） */
+        .screen { 
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+            display: flex; flex-direction: column; align-items: center; 
+            overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 1; 
+            padding-bottom: calc(85px + env(safe-area-inset-bottom)); 
+            box-sizing: border-box; 
+        }
         .content-width { width: 90%; max-width: 500px; margin-top: 25px; }
         
-        .header { width: 100%; padding: calc(15px + env(safe-area-inset-top)) 0 15px 0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+        /* ヘッダー（iPhoneのノッチ・Dynamic Islandを回避） */
+        .header { 
+            width: 100%; padding: calc(15px + env(safe-area-inset-top)) 0 15px 0; 
+            display: flex; align-items: center; justify-content: space-between; 
+            position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.1); 
+            backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+        }
         .screen-title { font-size: 1.3rem; font-weight: 900; margin-left: 20px; flex-grow: 1; letter-spacing: 1px; }
 
-        /* UI修正：box-sizing: border-boxを追加し、下部の黒帯を解消 */
-        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: calc(65px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 50; box-sizing: border-box; }
-        .nav-item { text-align: center; font-size: 1.3rem; cursor: pointer; color: #888; transition: 0.2s; flex: 1; }
+        /* ボトムナビゲーション（画面最下部に固定） */
+        .bottom-nav { 
+            position: absolute; bottom: 0; left: 0; width: 100%; 
+            padding-bottom: env(safe-area-inset-bottom); 
+            height: calc(65px + env(safe-area-inset-bottom)); 
+            background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
+            display: flex; justify-content: space-around; align-items: center; 
+            border-top: 1px solid rgba(0,0,0,0.1); z-index: 50; box-sizing: border-box; 
+        }
+        .nav-item { text-align: center; font-size: 1.3rem; cursor: pointer; color: #a0a0a0; transition: 0.2s; flex: 1; -webkit-tap-highlight-color: transparent; }
         .nav-item span { display: block; font-size: 0.65rem; font-weight: bold; margin-top: 3px; }
         .nav-item.active { color: var(--tm-cyan); }
 
@@ -48,8 +79,8 @@
         #home-screen { background-image: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.05) 0%, transparent 80%), linear-gradient(180deg, #fff 0%, #d1d9e6 100%); justify-content: center; position: relative; }
         .clock-container { text-align: center; margin-bottom: 20px; }
         .live-date { font-size: 1rem; color: #666; font-weight: 600; letter-spacing: 1px; }
-        .live-time { font-size: 2.5rem; font-weight: 300; letter-spacing: 4px; color: var(--text-main); margin-top: 5px; }
-        #baymax-msg { padding: 15px 25px; margin-top: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.5); width: 80%; margin-left: auto; margin-right: auto; min-height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.5; transition: opacity 0.5s ease; }
+        .live-time { font-size: 2.8rem; font-weight: 300; letter-spacing: 4px; color: var(--text-main); margin-top: 5px; }
+        #baymax-msg { padding: 15px 25px; margin-top: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.5); width: 80%; margin-left: auto; margin-right: auto; min-height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.5; transition: opacity 0.5s ease; border-radius: 12px; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); }
         .emergency-btn { margin-top: 40px; padding: 15px 40px; border-radius: 30px; background: var(--tm-silver); color: var(--tm-cyan); font-size: 1.1rem; border: 2px solid var(--tm-cyan); box-shadow: 0 5px 20px rgba(0,229,255,0.3); letter-spacing: 2px; }
         
         .hamburger-icon { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; width: 30px; height: 20px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 20; padding: 5px; }
@@ -61,7 +92,7 @@
         /* --- TASK GO --- */
         #taskgo-screen { background: var(--ts-blue); background-image: radial-gradient(circle at 20% 30%, #fff 5%, transparent 6%), radial-gradient(circle at 80% 60%, #fff 8%, transparent 9%); background-size: 300px 300px; }
         #taskgo-screen .screen-title { color: var(--ts-yellow); text-shadow: 2px 2px 0 var(--ts-red); text-align: center; margin-left: 0; }
-        .ts-input { flex-grow: 1; padding: 15px; border: 3px solid var(--ts-green); border-radius: 15px; font-size: 1rem; }
+        .ts-input { flex-grow: 1; padding: 15px; border: 3px solid var(--ts-green); border-radius: 15px; font-size: 1rem; -webkit-appearance: none; }
         .ts-list { background: rgba(255,255,255,0.8); border: 4px dashed var(--ts-yellow); border-radius: 20px; padding: 15px; list-style: none; margin: 0; }
         .ts-item { background: #fff; padding: 12px; margin-bottom: 8px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         .ts-analyze-btn { padding: 18px; background: var(--ts-red); color: #fff; font-size: 1.1rem; box-shadow: 0 6px 0 #b31217; width: 100%; }
@@ -72,7 +103,7 @@
         .setting-icon { font-size: 1.5rem; cursor: pointer; margin-right: 20px; position: relative; }
         #magic-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; flex-direction:column; padding-top: calc(40px + env(safe-area-inset-top)); }
         .magic-setting-card { background: var(--fm-night); border: 2px solid var(--fm-gold); border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; color: #fff; box-shadow: 0 0 30px rgba(255,215,0,0.2); }
-        .setting-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--fm-blue); background: rgba(255,255,255,0.1); color: #fff; box-sizing: border-box; font-size: 1rem; margin-top: 8px; }
+        .setting-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--fm-blue); background: rgba(255,255,255,0.1); color: #fff; box-sizing: border-box; font-size: 1rem; margin-top: 8px; -webkit-appearance: none;}
         .fm-card { background: rgba(10,10,40,0.7); border: 1px solid rgba(255,215,0,0.3); border-radius: 15px; padding: 18px; margin-bottom: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .routine-item { display: block; padding: 15px; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; cursor: pointer; transition: 0.3s; text-align: center; border: 1px solid transparent; font-weight: bold; }
         .routine-item.checked { background: rgba(255,215,0,0.15); border: 1px solid var(--fm-gold); color: var(--fm-gold); box-shadow: inset 0 0 10px rgba(255,215,0,0.1); transform: scale(0.98); }
@@ -88,7 +119,7 @@
         #journal-screen .screen-title { color: var(--cc-wood); font-family: 'Georgia', serif; text-align: center; margin-left: 0; }
         .cc-time-btn { padding: 10px; flex: 1; background: rgba(255,255,255,0.6); border: 1px solid var(--cc-wood); color: var(--cc-wood); }
         .cc-time-btn.active { background: var(--cc-wood); color: #fff; }
-        #journal-input { width: 100%; box-sizing: border-box; min-height: 40vh; resize: none; border: 2px solid rgba(123,107,97,0.2); background: rgba(255,255,255,0.5); padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.6; transition: 1s; }
+        #journal-input { width: 100%; box-sizing: border-box; min-height: 40vh; resize: none; border: 2px solid rgba(123,107,97,0.2); background: rgba(255,255,255,0.5); padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.6; transition: 1s; -webkit-appearance: none;}
         .fog-fade { filter: blur(10px); opacity: 0; transition: filter 4s, opacity 4s; }
         #journal-counter-display { margin-top: 15px; color: var(--cc-dark); font-weight: bold; font-size: 0.9rem; text-align: center; }
 
@@ -96,7 +127,7 @@
         #scan-screen { background: var(--sc-bg); color: var(--sc-turq-light); background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,180,216,0.03) 2px, rgba(0,180,216,0.03) 4px); }
         #scan-screen .screen-title { color: var(--sc-turq); text-align: center; margin-left: 0; }
         .sc-panel { background: rgba(0, 180, 216, 0.08); padding: 20px; border-radius: 15px; border: 1px solid var(--sc-turq); text-align: center; }
-        #scan-input { width: 100%; box-sizing: border-box; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--sc-turq); color: var(--sc-turq-light); border-radius: 10px; resize: none; font-size: 1rem; }
+        #scan-input { width: 100%; box-sizing: border-box; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--sc-turq); color: var(--sc-turq-light); border-radius: 10px; resize: none; font-size: 1rem; -webkit-appearance: none;}
         #breathe-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(13,27,42,0.98); z-index: 100; flex-direction: column; }
         .breathe-circle { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, var(--sc-turq) 0%, transparent 80%); transition: 4s ease-in-out; border: 1px solid var(--sc-turq); box-shadow: 0 0 30px var(--sc-turq); }
 
@@ -105,11 +136,11 @@
         #mood-screen .screen-title { color: var(--ml-red); text-align: center; margin-left: 0; }
         .ml-card { background: #fff; padding: 20px; border-radius: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .ml-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; }
-        .ml-box { aspect-ratio: 1/1.1; border: 2px solid #eee; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .ml-box { aspect-ratio: 1/1.1; border: 2px solid #eee; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent;}
         .ml-box .face { font-size: 1.8rem; margin-bottom: 5px; }
         .ml-box.active { border-color: var(--ml-red); background: rgba(255,51,102,0.1); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,51,102,0.15); }
         .ml-tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-        .ml-tag { padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; cursor: pointer; color: #555; }
+        .ml-tag { padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; cursor: pointer; color: #555; -webkit-tap-highlight-color: transparent;}
         .ml-tag.active { background: var(--ml-blue); color: #fff; border-color: var(--ml-blue); }
         
         #mood-popup { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; flex-direction:column; padding-top: calc(20px + env(safe-area-inset-top)); }
@@ -134,14 +165,14 @@
             <span></span>
         </div>
         
-        <div class="clock-container" style="margin-top: calc(60px + env(safe-area-inset-top));">
+        <div class="clock-container" style="margin-top: calc(70px + env(safe-area-inset-top));">
             <div id="live-date" class="live-date">--年--月--日(--)</div>
             <div id="live-time" class="live-time">00:00:00</div>
         </div>
         
         <div style="text-align: center;" onclick="changeHomeQuote()">
             <div style="font-size: 55px; font-weight: bold;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
-            <div class="glass-panel" id="baymax-msg">こんにちは。私はベイマックス。<br>あなたの健康を守ります。</div>
+            <div id="baymax-msg">こんにちは。私はベイマックス。<br>あなたの健康を守ります。</div>
         </div>
 
         <button class="flex-center base-btn emergency-btn" onclick="toggleSOS(true)">EMERGENCY SOS</button>
@@ -154,7 +185,7 @@
             <div style="margin-bottom: 15px;">
                 <span style="font-size: 0.9rem; color: #555; font-weight: bold;">Gemini API Key</span>
                 <input type="password" id="api-key-input" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #fafafa; color: #333; box-sizing: border-box; font-size: 1rem; margin-top: 8px;" placeholder="AIzaSy...">
-                <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">※ブラウザのローカルにのみ保存され、外部には送信されません。</div>
+                <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">※APIキーはブラウザにのみ保存され、外部には送信されません。</div>
             </div>
             
             <div style="display: flex; gap: 10px; margin-top: 30px;">
@@ -371,7 +402,7 @@
         document.getElementById('global-settings-modal').classList.add('hidden');
     };
 
-    // API呼び出しの修正 (v1)
+    // CORS回避のために「cors-anywhere」プロキシを経由するよう修正
     async function callGeminiAPI(promptText) {
         const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!apiKey) {
@@ -379,26 +410,36 @@
             return "※APIキーが設定されていません。";
         }
         
+        // 1. Google APIの本来のURL
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        
+        // 2. CORS回避用プロキシURL
+        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
+        const fetchUrl = proxyUrl + targetUrl;
+        
         try {
-            const response = await fetch(url, {
+            const response = await fetch(fetchUrl, {
                 method: "POST",
-                headers: { "Content-Type": "application/json" },
+                headers: { 
+                    "Content-Type": "application/json",
+                    "X-Requested-With": "XMLHttpRequest"
+                },
                 body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
             });
             const data = await response.json();
             
             if (data.error) {
                 console.error("API Error Response:", data.error);
-                alert(`APIエラーが発生しました: ${data.error.message}\n（コード: ${data.error.code}）`);
-                return "エラーが発生したため、分析を中断しました。設定を確認してください。";
+                alert(`APIエラーが発生しました: ${data.error.message}`);
+                return "APIキーの権限エラー、またはプロキシの制限に引っかかりました。";
             }
             return data.candidates[0].content.parts[0].text;
             
         } catch (error) {
             console.error("Fetch Error:", error);
-            alert("通信エラーが発生しました。ネットワーク接続を確認してください。");
-            return "通信エラーが発生しました。";
+            // エラー原因がプロキシの未承認である可能性が高いため、その案内を出す
+            alert("通信エラーが発生しました。\n\n※iPhoneでのCORS制限によるものです。一度Safariで「https://cors-anywhere.herokuapp.com/corsdemo」を開き、『Request temporary access to the demo server』ボタンを押してから再度お試しください。");
+            return "通信エラーが発生しました。上記の手順でプロキシのアクセス許可を行ってください。";
         }
     }
 
@@ -550,105 +591,4 @@
         input.disabled = false; input.value = ''; input.classList.remove('fog-fade'); msg.classList.add('hidden'); input.focus();
         let tl = m * 60; clearInterval(jTimer);
         jTimer = setInterval(() => {
-            tl--; 
-            document.getElementById('j-timer').innerText = `${String(Math.floor(tl/60)).padStart(2,'0')}:${String(tl%60).padStart(2,'0')}`;
-            if(tl<=0) { 
-                clearInterval(jTimer); input.disabled=true; input.classList.add('fog-fade'); 
-                journalCount++; document.getElementById('journal-counter-display').innerText = `これまでに海に流した思考: ${journalCount}回`;
-                setTimeout(()=>msg.classList.remove('hidden'), 4000); 
-            }
-        }, 1000);
-    };
-    const resetJournal = () => { clearInterval(jTimer); document.getElementById('journal-input').value=''; document.getElementById('j-timer').innerText='00:00'; };
-
-    // --- Scan (AI Integration) ---
-    const runScan = () => {
-        const text = document.getElementById('scan-input').value; if(!text) return;
-        const ov = document.getElementById('breathe-overlay'), c = document.getElementById('b-circle'), btn = document.getElementById('scan-execute-btn');
-        btn.disabled = true;
-        ov.classList.remove('hidden'); ov.style.display = 'flex'; c.innerText = "吸って...";
-        setTimeout(()=> { c.style.transform = 'scale(1.8)'; }, 100);
-        setTimeout(()=> { c.innerText = "吐いて..."; c.style.transform = 'scale(1)'; }, 4000);
-        setTimeout(async ()=> {
-            ov.classList.add('hidden');
-            document.getElementById('scan-res').classList.remove('hidden');
-            document.getElementById('scan-res-text').innerHTML = '<div class="loading-text" style="text-align:center;">スキャン中...</div>';
-            
-            const prompt = `あなたはケア・ロボットのベイマックスです。医療マネージャーとして忙しく働くユーザーが、以下の状況や感情を入力しました。
-            これに対して、適切なリラックス法を提示してください。
-            【条件】
-            ・医療ロボットとしての視点と優しさを持ち、ディズニーの世界観（ディズニーリゾートやキャラクター、またはサウナでのリラックスなど）を少しだけ交えること。
-            ・前頭前野を休ませるようなアドバイスをすること。
-            ・比喩は多用せず、読み手に寄り添いながらも端的な表現にすること。回りくどい表現は厳禁。
-            【入力】: ${text}`;
-            
-            const result = await callGeminiAPI(prompt);
-            document.getElementById('scan-res-text').innerText = result;
-            btn.disabled = false;
-        }, 8000);
-    };
-
-    // --- Mood Log (AI Integration) ---
-    let moodLogs = [];
-    const mlArea = document.getElementById('ml-scale-area');
-    const faces = ["😊","🙂","😐","😑","😕","😟","😣","😖","😫","😭"];
-    for(let i=1; i<=10; i++){
-        mlArea.insertAdjacentHTML('beforeend', `<div class="ml-box" onclick="selectMood(this)"><div class="face">${faces[i-1]}</div><div>${i}</div></div>`);
-    }
-    const selectMood = (el) => { document.querySelectorAll('.ml-box').forEach(b=>b.classList.remove('active')); el.classList.add('active'); };
-    
-    const saveMood = async () => { 
-        const activeBox = document.querySelector('.ml-box.active');
-        if(!activeBox) return alert("10段階で気分を選択してください。");
-        
-        const btn = document.getElementById('mood-execute-btn');
-        btn.disabled = true;
-        btn.innerText = "AIが分析中...";
-
-        const score = activeBox.querySelector('div:last-child').innerText;
-        const tags = Array.from(document.querySelectorAll('.ml-tag.active')).map(t => t.innerText);
-        
-        const d = new Date();
-        const dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-        moodLogs.unshift({ date: dateStr, score, tags });
-        renderMoodLogs();
-
-        const prompt = `あなたはケア・ロボットのベイマックスです。多忙な医療マネージャーのユーザーが、今の気分を記録しました。
-        【心の痛み（10段階）】: ${score}
-        【選んだタグ】: ${tags.length > 0 ? tags.join(', ') : 'なし'}
-        この状態に対する適切な対処法や労いの言葉を教えてください。
-        【条件】
-        ・ベイマックスの口調で。
-        ・端的に、読み手に寄り添う表現で。回りくどい言い回しは避けること。`;
-
-        const aiMessage = await callGeminiAPI(prompt);
-
-        document.getElementById('mood-popup-msg').innerText = aiMessage;
-        document.getElementById('mood-popup').classList.remove('hidden');
-        document.getElementById('mood-popup').style.display = 'flex';
-
-        document.querySelectorAll('.ml-box, .ml-tag').forEach(el => el.classList.remove('active'));
-        btn.innerText = "SAVE LOG";
-        btn.disabled = false;
-    };
-
-    const renderMoodLogs = () => {
-        const container = document.getElementById('mood-log-list');
-        if(moodLogs.length === 0) return;
-        
-        container.innerHTML = moodLogs.map(log => `
-            <div style="background:#fff; border:1px solid #ddd; padding:12px; border-radius:12px; margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight:bold; color:var(--ml-red);">Score: ${log.score}</span>
-                    <span style="font-size:0.8rem; color:#888;">${log.date}</span>
-                </div>
-                <div style="margin-top:5px; font-size:0.85rem; color:#555;">
-                    ${log.tags.length > 0 ? log.tags.map(t => `<span style="background:rgba(33,150,243,0.1); color:var(--ml-blue); padding:2px 6px; border-radius:10px; margin-right:5px; display:inline-block; margin-bottom:4px;">${t}</span>`).join('') : 'タグなし'}
-                </div>
-            </div>
-        `).join('');
-    };
-
-</script>
-</body>
-</html>
+            tl--;
