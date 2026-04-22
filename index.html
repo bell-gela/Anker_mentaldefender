@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Anchor - Mental Anchor Tool</title>
+    <style>
+        :root {
+            --tm-bg: #f0f4f7; --tm-cyan: #00e5ff; --tm-silver: linear-gradient(145deg, #e6e9ef, #ffffff);
+            --ts-blue: #00aeef; --ts-yellow: #fded00; --ts-red: #ed1c24; --ts-green: #39b54a; --ts-wood: #855e42;
+            --fm-night: #090930; --fm-gold: #ffd700; --fm-blue: #00bfff;
+            --cc-sky: #b3cdd1; --cc-sand: #e8e4d9; --cc-wood: #7b6b61; --cc-dark: #4a5c6a;
+            --sc-bg: #0d1b2a; --sc-turq: #00b4d8; --sc-turq-light: #90e0ef;
+            --ml-white: #ffffff; --ml-red: #ff3366; --ml-blue: #2196f3; --ml-gray: #f5f5f7;
+            --text-main: #2c3e50; --glass: rgba(255, 255, 255, 0.7);
+        }
+
+        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Avenir Next', sans-serif; color: var(--text-main); overflow: hidden; background: #1a1a1a; }
+        .app-container { width: 100%; max-width: 600px; height: 100%; margin: 0 auto; position: relative; background: var(--tm-bg); overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        .hidden { display: none !important; }
+        .flex-center { display: flex; justify-content: center; align-items: center; }
+        .base-btn { border: none; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
+        .base-btn:active { transform: scale(0.95); }
+        .base-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+        
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; overflow-y: auto; z-index: 1; padding-bottom: 90px; box-sizing: border-box; }
+        .content-width { width: 90%; max-width: 500px; margin-top: 25px; }
+        .header { width: 100%; padding: 15px 0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+        .screen-title { font-size: 1.3rem; font-weight: 900; margin-left: 20px; flex-grow: 1; letter-spacing: 1px; }
+
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 50; }
+        .nav-item { text-align: center; font-size: 1.3rem; cursor: pointer; color: #888; transition: 0.2s; flex: 1; }
+        .nav-item span { display: block; font-size: 0.65rem; font-weight: bold; margin-top: 3px; }
+        .nav-item.active { color: var(--tm-cyan); }
+
+        @keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
+        .baymax-eye { display: inline-block; animation: blink 5s infinite; }
+        @keyframes loadingPulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+        .loading-text { animation: loadingPulse 1.5s infinite; font-weight: bold; }
+
+        /* --- HOME --- */
+        #home-screen { background-image: radial-gradient(circle at 50% 50%, rgba(0,229,255,0.05) 0%, transparent 80%), linear-gradient(180deg, #fff 0%, #d1d9e6 100%); justify-content: center; position: relative; }
+        .clock-container { text-align: center; margin-bottom: 20px; }
+        .live-date { font-size: 1rem; color: #666; font-weight: 600; letter-spacing: 1px; }
+        .live-time { font-size: 2.5rem; font-weight: 300; letter-spacing: 4px; color: var(--text-main); margin-top: 5px; }
+        #baymax-msg { padding: 15px 25px; margin-top: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.5); width: 80%; margin-left: auto; margin-right: auto; min-height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.5; }
+        .emergency-btn { margin-top: 40px; padding: 15px 40px; border-radius: 30px; background: var(--tm-silver); color: var(--tm-cyan); font-size: 1.1rem; border: 2px solid var(--tm-cyan); box-shadow: 0 5px 20px rgba(0,229,255,0.3); letter-spacing: 2px; }
+        
+        /* Hamburger Menu Icon */
+        .hamburger-icon { position: absolute; top: 20px; right: 20px; width: 30px; height: 20px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 20; padding: 5px; }
+        .hamburger-icon span { display: block; width: 100%; height: 3px; background-color: var(--text-main); border-radius: 2px; }
+
+        /* Global Settings Modal */
+        #global-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:150; flex-direction:column; padding-top: 60px; }
+        .global-setting-card { background: #fff; border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+
+        /* --- TASK GO --- */
+        #taskgo-screen { background: var(--ts-blue); background-image: radial-gradient(circle at 20% 30%, #fff 5%, transparent 6%), radial-gradient(circle at 80% 60%, #fff 8%, transparent 9%); background-size: 300px 300px; }
+        #taskgo-screen .screen-title { color: var(--ts-yellow); text-shadow: 2px 2px 0 var(--ts-red); text-align: center; margin-left: 0; }
+        .ts-input { flex-grow: 1; padding: 15px; border: 3px solid var(--ts-green); border-radius: 15px; font-size: 1rem; }
+        .ts-list { background: rgba(255,255,255,0.8); border: 4px dashed var(--ts-yellow); border-radius: 20px; padding: 15px; list-style: none; margin: 0; }
+        .ts-item { background: #fff; padding: 12px; margin-bottom: 8px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
+        .ts-analyze-btn { padding: 18px; background: var(--ts-red); color: #fff; font-size: 1.1rem; box-shadow: 0 6px 0 #b31217; width: 100%; }
+
+        /* --- BE MAGICAL --- */
+        #bemagical-screen { background: linear-gradient(180deg, #020024 0%, var(--fm-night) 60%, #000 100%); color: #e0e0e0; position: relative; }
+        #bemagical-screen .screen-title { color: transparent; background: linear-gradient(45deg, var(--fm-gold), #fff, var(--fm-gold)); -webkit-background-clip: text; text-shadow: 0 0 15px var(--fm-gold); }
+        .setting-icon { font-size: 1.5rem; cursor: pointer; margin-right: 20px; position: relative; }
+        #magic-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; flex-direction:column; padding-top: 40px; }
+        .magic-setting-card { background: var(--fm-night); border: 2px solid var(--fm-gold); border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; color: #fff; box-shadow: 0 0 30px rgba(255,215,0,0.2); }
+        .setting-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--fm-blue); background: rgba(255,255,255,0.1); color: #fff; box-sizing: border-box; font-size: 1rem; margin-top: 8px; }
+        .fm-card { background: rgba(10,10,40,0.7); border: 1px solid rgba(255,215,0,0.3); border-radius: 15px; padding: 18px; margin-bottom: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
+        .routine-item { display: block; padding: 15px; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; cursor: pointer; transition: 0.3s; text-align: center; border: 1px solid transparent; font-weight: bold; }
+        .routine-item.checked { background: rgba(255,215,0,0.15); border: 1px solid var(--fm-gold); color: var(--fm-gold); box-shadow: inset 0 0 10px rgba(255,215,0,0.1); transform: scale(0.98); }
+        #fireworks-container { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 5; overflow: hidden; }
+        .firework { position: absolute; border-radius: 50%; border: 2px solid var(--fm-gold); opacity: 0; }
+        .fw1 { top: 20%; left: 30%; animation: explode 1s ease-out 0s infinite; }
+        .fw2 { top: 40%; left: 70%; animation: explode 1s ease-out 0.5s infinite; }
+        .fw3 { top: 15%; left: 60%; animation: explode 1s ease-out 0.2s infinite; }
+        @keyframes explode { 0% { width: 0; height: 0; opacity: 1; border-width: 10px; transform: translate(0, 0); } 100% { width: 150px; height: 150px; opacity: 0; border-width: 0; transform: translate(-75px, -75px); } }
+
+        /* --- JOURNAL --- */
+        #journal-screen { background: linear-gradient(180deg, var(--cc-sky) 0%, var(--cc-sand) 100%); }
+        #journal-screen .screen-title { color: var(--cc-wood); font-family: 'Georgia', serif; text-align: center; margin-left: 0; }
+        .cc-time-btn { padding: 10px; flex: 1; background: rgba(255,255,255,0.6); border: 1px solid var(--cc-wood); color: var(--cc-wood); }
+        .cc-time-btn.active { background: var(--cc-wood); color: #fff; }
+        #journal-input { width: 100%; box-sizing: border-box; min-height: 40vh; resize: none; border: 2px solid rgba(123,107,97,0.2); background: rgba(255,255,255,0.5); padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.6; transition: 1s; }
+        .fog-fade { filter: blur(10px); opacity: 0; transition: filter 4s, opacity 4s; }
+        #journal-counter-display { margin-top: 15px; color: var(--cc-dark); font-weight: bold; font-size: 0.9rem; text-align: center; }
+
+        /* --- SCAN --- */
+        #scan-screen { background: var(--sc-bg); color: var(--sc-turq-light); background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,180,216,0.03) 2px, rgba(0,180,216,0.03) 4px); }
+        #scan-screen .screen-title { color: var(--sc-turq); text-align: center; margin-left: 0; }
+        .sc-panel { background: rgba(0, 180, 216, 0.08); padding: 20px; border-radius: 15px; border: 1px solid var(--sc-turq); text-align: center; }
+        #scan-input { width: 100%; box-sizing: border-box; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--sc-turq); color: var(--sc-turq-light); border-radius: 10px; resize: none; font-size: 1rem; }
+        #breathe-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(13,27,42,0.98); z-index: 100; flex-direction: column; }
+        .breathe-circle { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, var(--sc-turq) 0%, transparent 80%); transition: 4s ease-in-out; border: 1px solid var(--sc-turq); box-shadow: 0 0 30px var(--sc-turq); }
+
+        /* --- MOOD LOG --- */
+        #mood-screen { background: var(--ml-gray); }
+        #mood-screen .screen-title { color: var(--ml-red); text-align: center; margin-left: 0; }
+        .ml-card { background: #fff; padding: 20px; border-radius: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
+        .ml-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; }
+        .ml-box { aspect-ratio: 1/1.1; border: 2px solid #eee; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; cursor: pointer; transition: 0.2s; }
+        .ml-box .face { font-size: 1.8rem; margin-bottom: 5px; }
+        .ml-box.active { border-color: var(--ml-red); background: rgba(255,51,102,0.1); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,51,102,0.15); }
+        .ml-tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
+        .ml-tag { padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; cursor: pointer; color: #555; }
+        .ml-tag.active { background: var(--ml-blue); color: #fff; border-color: var(--ml-blue); }
+        
+        #mood-popup { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; flex-direction:column; }
+        .mood-popup-card { background: #fff; border-radius: 20px; padding: 30px; width: 80%; max-width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
+
+        /* --- SOS OVERLAY --- */
+        #sos-overlay { background: linear-gradient(270deg, #e0f2f1, #b2dfdb, #80cbc4, #e0f2f1); background-size: 800% 800%; animation: waveGradient 8s ease infinite; z-index: 200; flex-direction: column; }
+        @keyframes waveGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        .ticker-wrapper { position: absolute; width: 100%; height: 35px; overflow: hidden; display: flex; align-items: center; }
+        .ticker-text { white-space: nowrap; font-size: 1.5rem; color: #78909c; font-weight: 900; animation: scrollTickerText 15s linear infinite; }
+        @keyframes scrollTickerText { 0% { transform: translateX(0); } 100% { transform: translateX(-50%); } }
+    </style>
+</head>
+<body>
+
+<div class="app-container">
+
+    <div id="home-screen" class="screen">
+        <div class="hamburger-icon" onclick="openGlobalSettings()">
+            <span></span>
+            <span></span>
+            <span></span>
+        </div>
+        
+        <div class="clock-container" style="margin-top: 60px;">
+            <div id="live-date" class="live-date">--年--月--日(--)</div>
+            <div id="live-time" class="live-time">00:00:00</div>
+        </div>
+        
+        <div style="text-align: center;" onclick="changeHomeQuote()">
+            <div style="font-size: 55px; font-weight: bold;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
+            <div class="glass-panel" id="baymax-msg">こんにちは。私はベイマックス。<br>あなたの健康を守ります。</div>
+        </div>
+
+        <button class="flex-center base-btn emergency-btn" onclick="toggleSOS(true)">EMERGENCY SOS</button>
+    </div>
+
+    <div id="global-settings-modal" class="hidden flex-center">
+        <div class="global-setting-card">
+            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main);">⚙️ System Settings</div>
+            
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 0.9rem; color: #555; font-weight: bold;">Gemini API Key</span>
+                <input type="password" id="api-key-input" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #fafafa; color: #333; box-sizing: border-box; font-size: 1rem; margin-top: 8px;" placeholder="AIzaSy...">
+                <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">※ブラウザのローカルにのみ保存され、外部には送信されません。</div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 30px;">
+                <button class="base-btn" style="flex:1; padding:12px; background:#ddd; color:#333;" onclick="closeGlobalSettings(false)">キャンセル</button>
+                <button class="base-btn" style="flex:1; padding:12px; background:var(--tm-cyan); color:#fff;" onclick="closeGlobalSettings(true)">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="taskgo-screen" class="screen hidden">
+        <div class="header"><div class="screen-title">Task Go</div></div>
+        <div class="content-width" style="display:flex; gap:10px;">
+            <input type="text" id="task-input" class="ts-input" placeholder="やりたいことを入力..." onkeypress="if(event.key==='Enter')addTask()">
+            <button class="base-btn" style="padding:0 20px; background:var(--ts-green); color:#fff;" onclick="addTask()">Add</button>
+        </div>
+        <div class="content-width"><ul id="task-list" class="ts-list"></ul></div>
+        <div class="content-width">
+            <button id="analyze-btn" class="base-btn ts-analyze-btn" onclick="analyzeTasks()" disabled>Analyze</button>
+        </div>
+        <div id="suggestion-area" class="content-width hidden" style="background:#fff; border:4px solid var(--ts-green); border-radius:20px; padding:20px;">
+            <div style="color:var(--ts-green); font-weight:800; text-align:center; margin-bottom:15px;">🚀 AI OPTIMIZED ROUTE</div>
+            <div id="suggestion-steps" style="line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap;"></div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button id="copy-btn" class="base-btn" style="flex: 2; padding:12px; background:var(--ts-blue); color:#fff;" onclick="copyTasks()">📋 結果をコピー</button>
+                <button class="base-btn" style="flex: 1; padding:12px; background:#ddd; color:#333;" onclick="resetTaskGo()">🔄 リセット</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="bemagical-screen" class="screen hidden">
+        <div class="header" style="border-bottom: 1px solid rgba(0,191,255,0.2);">
+            <div class="screen-title">Be Magical!</div>
+            <span class="setting-icon" onclick="openMagicSettings()">⚙️</span>
+        </div>
+        
+        <div id="fireworks-container" class="hidden">
+            <div class="firework fw1"></div>
+            <div class="firework fw2"></div>
+            <div class="firework fw3"></div>
+        </div>
+
+        <div class="content-width fm-card" style="text-align: center; position: relative; z-index: 10;">
+            <div style="color:var(--fm-blue); font-size: 0.9rem;">✨ NEXT IN-PARK UNTIL...</div>
+            <div id="countdown-val" style="font-size: 3.5rem; font-weight: 900; color: var(--fm-gold); margin: 10px 0;">-- Days</div>
+        </div>
+        
+        <div class="content-width fm-card" style="position: relative; z-index: 10;">
+            <div style="color:var(--fm-blue); font-weight: bold; margin-bottom: 15px;">✨ DAILY CONDITIONING</div>
+            <div id="routine-container"></div>
+        </div>
+    </div>
+
+    <div id="magic-settings-modal" class="hidden flex-center">
+        <div class="magic-setting-card">
+            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--fm-gold);">⚙️ Magic Settings</div>
+            
+            <div style="margin-bottom: 15px;">
+                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">インパーク予定日</span>
+                <input type="date" id="setting-date" class="setting-input" value="2026-06-12">
+            </div>
+            
+            <div style="margin-bottom: 20px;">
+                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">花火の演出時間 (秒)</span>
+                <input type="number" id="setting-fw-time" class="setting-input" min="1" max="10" value="3">
+            </div>
+
+            <div style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(0,191,255,0.3);">
+                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold; display:block; margin-bottom:8px;">ルーティンの編集</span>
+                <div id="settings-routine-list" style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;"></div>
+                <div style="display: flex; gap: 10px;">
+                    <input type="text" id="new-routine-input" class="setting-input" style="margin-top:0;" placeholder="新しいルーティンを追加...">
+                    <button class="base-btn" style="background:var(--fm-blue); color:#fff; padding:0 15px;" onclick="addRoutine()">＋</button>
+                </div>
+            </div>
+            
+            <div style="display: flex; gap: 10px; margin-top: 20px;">
+                <button class="base-btn" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); color:#fff;" onclick="closeMagicSettings(false)">キャンセル</button>
+                <button class="base-btn" style="flex:1; padding:12px; background:var(--fm-gold); color:#000;" onclick="closeMagicSettings(true)">保存</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="journal-screen" class="screen hidden">
+        <div class="header"><div class="screen-title">Journal</div></div>
+        <div class="content-width flex-center" style="gap:10px;">
+            <button class="base-btn cc-time-btn" onclick="startJournal(0.5, this)">30s</button>
+            <button class="base-btn cc-time-btn" onclick="startJournal(3, this)">3m</button>
+            <button class="base-btn cc-time-btn" onclick="startJournal(5, this)">5m</button>
+        </div>
+        <div id="j-timer" style="font-size:2.5rem; margin-top:15px; color:var(--cc-dark); font-weight:300;">00:00</div>
+        
+        <div class="content-width"><textarea id="journal-input" placeholder="頭の中のキャッシュを全て書き出してください..." disabled></textarea></div>
+        <div id="journal-counter-display">これまでに海に流した思考: 0回</div>
+
+        <div id="j-msg" class="hidden" style="text-align:center; color:var(--cc-dark); margin-top:20px;">
+            <div style="font-size:2rem;">🌊</div>
+            <div style="font-weight:bold;">思考は海へと溶けました。</div>
+        </div>
+    </div>
+
+    <div id="scan-screen" class="screen hidden">
+        <div class="header"><div class="screen-title">SCAN SYSTEM</div></div>
+        <div class="content-width sc-panel">
+            <div style="color:var(--sc-turq-light); font-size:0.8rem; margin-bottom:10px;">[ AWAITING COGNITIVE INPUT ]</div>
+            <textarea id="scan-input" rows="4" placeholder="現在の状況・感情を入力してください..."></textarea>
+            <button id="scan-execute-btn" class="base-btn" style="width:100%; margin-top:15px; padding:15px; background:var(--sc-turq); color:#000;" onclick="runScan()">EXECUTE SCAN</button>
+        </div>
+        <div id="scan-res" class="content-width sc-panel hidden" style="margin-top:30px; border-style:double; position:relative;">
+            <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--sc-bg); padding:0 10px; color:var(--sc-turq); font-size:0.8rem;">AI REFRAMED</div>
+            <div id="scan-res-text" style="line-height:1.6; font-size:0.95rem; white-space: pre-wrap; text-align: left;"></div>
+        </div>
+    </div>
+    <div id="breathe-overlay" class="hidden flex-center">
+        <div style="color:var(--sc-turq); text-align:center; margin-bottom:40px;">[ SYNCING HEART RATE ]<br><span style="font-weight:normal; opacity:0.7;">自律神経を同期しています...</span></div>
+        <div id="b-circle" class="breathe-circle flex-center">...</div>
+    </div>
+
+    <div id="mood-screen" class="screen hidden">
+        <div class="header"><div class="screen-title">Mood Log</div></div>
+        
+        <div class="content-width ml-card">
+            <div style="font-weight:bold; text-align:center; margin-bottom: 10px;">「10段階で、心の痛みは？」</div>
+            <div id="ml-scale-area" class="ml-scale"></div>
+        </div>
+        
+        <div class="content-width ml-card">
+            <div style="font-weight:bold;">感性タグ（今の気分に近いもの）</div>
+            <div class="ml-tag-grid">
+                <span class="ml-tag" onclick="this.classList.toggle('active')">モヤモヤ</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">ワクワク</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">イライラ</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">どんより</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">凪</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">焦り</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">無気力</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">安らぎ</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">悲しみ</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">プレッシャー</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">達成感</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">孤独</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">自己嫌悪</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">スッキリ</span>
+                <span class="ml-tag" onclick="this.classList.toggle('active')">ドバドバ</span>
+            </div>
+        </div>
+        <div class="content-width">
+            <button id="mood-execute-btn" class="base-btn" style="width:100%; padding:18px; background:var(--ml-red); color:#fff;" onclick="saveMood()">SAVE LOG</button>
+        </div>
+        
+        <div class="content-width">
+            <div style="font-weight:bold; color:#555; margin-bottom:10px;">📝 過去の記録</div>
+            <div id="mood-log-list" style="padding-bottom: 20px;">
+                <div style="text-align:center; color:#999; font-size:0.85rem;">まだ記録はありません。</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="mood-popup" class="hidden flex-center">
+        <div class="mood-popup-card">
+            <div style="font-size: 40px;">（⚫︎ー⚫︎）</div>
+            <div id="mood-popup-msg" style="margin: 20px 0; font-weight: bold; color: #555; line-height: 1.6; white-space: pre-wrap;"></div>
+            <button class="base-btn" style="padding: 10px 30px; background: var(--ml-blue); color: #fff;" onclick="document.getElementById('mood-popup').classList.add('hidden')">OK</button>
+        </div>
+    </div>
+
+    <div id="sos-overlay" class="screen flex-center hidden" onclick="toggleSOS(false)">
+        <div class="ticker-wrapper" style="top:60px;">
+            <div class="ticker-text">
+                WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
+                WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
+            </div>
+        </div>
+        <div style="font-size:60px;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
+        <div style="text-align:center; color:#546e7a; margin-top:20px; line-height:1.8; font-weight: bold;">大丈夫ですよ。<br>ゆっくりと深呼吸をしましょう。</div>
+        <div class="ticker-wrapper" style="bottom:60px;">
+            <div class="ticker-text">
+                Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
+                Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
+            </div>
+        </div>
+    </div>
+
+    <nav class="bottom-nav">
+        <div class="nav-item active" onclick="switchTab('home-screen', this)">🏠<span>Home</span></div>
+        <div class="nav-item" onclick="switchTab('taskgo-screen', this)">📋<span>Task</span></div>
+        <div class="nav-item" onclick="switchTab('scan-screen', this)">👁️<span>Scan</span></div>
+        <div class="nav-item" onclick="switchTab('bemagical-screen', this)">✨<span>Magic</span></div>
+        <div class="nav-item" onclick="switchTab('mood-screen', this)">🌡️<span>Mood</span></div>
+        <div class="nav-item" onclick="switchTab('journal-screen', this)">🌊<span>Journal</span></div>
+    </nav>
+
+</div>
+
+<script>
+    // ==========================================
+    // 🔑 GEMINI API KEY MANAGEMENT
+    // ==========================================
+    const LOCAL_STORAGE_KEY = 'anchor_gemini_api_key';
+    
+    const openGlobalSettings = () => {
+        const savedKey = localStorage.getItem(LOCAL_STORAGE_KEY) || "";
+        document.getElementById('api-key-input').value = savedKey;
+        document.getElementById('global-settings-modal').classList.remove('hidden');
+        document.getElementById('global-settings-modal').style.display = 'flex';
+    };
+
+    const closeGlobalSettings = (save) => {
+        if(save) {
+            const inputKey = document.getElementById('api-key-input').value.trim();
+            localStorage.setItem(LOCAL_STORAGE_KEY, inputKey);
+            alert("APIキーをブラウザに保存しました。");
+        }
+        document.getElementById('global-settings-modal').classList.add('hidden');
+    };
+
+    async function callGeminiAPI(promptText) {
+        const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
+        if (!apiKey) {
+            alert("ホーム画面右上の設定アイコン（≡）からGemini APIキーを登録してください。");
+            return "※APIキーが設定されていません。";
+        }
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
+        try {
+            const response = await fetch(url, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
+            });
+            const data = await response.json();
+            if (data.error) {
+                console.error("API Error Response:", data.error);
+                return "APIキーが間違っているか、エラーが発生しました。設定を確認してください。";
+            }
+            return data.candidates[0].content.parts[0].text;
+        } catch (error) {
+            console.error("Fetch Error:", error);
+            return "通信エラーが発生しました。ネットワークを確認してください。";
+        }
+    }
+
+    // --- Clock ---
+    const updateClock = () => {
+        const d = new Date();
+        const days = ["日", "月", "火", "水", "木", "金", "土"];
+        document.getElementById('live-date').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})`;
+        document.getElementById('live-time').innerText = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
+    };
+    setInterval(updateClock, 1000); updateClock();
+
+    // --- Navigation ---
+    const switchTab = (id, el) => {
+        document.querySelectorAll('.screen').forEach(s => s.classList.toggle('hidden', s.id !== id));
+        document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+        el.classList.add('active');
+        if(id !== 'journal-screen') resetJournal();
+        if(id === 'bemagical-screen') calcCountdown();
+        window.scrollTo(0,0);
+    };
+
+    const changeHomeQuote = () => {
+        const qs = [
+            "こんにちは。私はベイマックス。\nあなたの健康を守ります。",
+            "深呼吸を提案します。",
+            "泣いてもいいんですよ。",
+            "（⚫︎ー⚫︎）b バララララララ"
+        ];
+        document.getElementById('baymax-msg').innerText = qs[Math.floor(Math.random()*qs.length)];
+    };
+    const toggleSOS = (show) => document.getElementById('sos-overlay').classList.toggle('hidden', !show);
+
+    // --- Task Go (AI Integration) ---
+    const tIn = document.getElementById('task-input'), tList = document.getElementById('task-list'), tBtn = document.getElementById('analyze-btn');
+    const addTask = () => {
+        if(!tIn.value.trim()) return;
+        tList.insertAdjacentHTML('beforeend', `<li class="ts-item"><span>${tIn.value}</span><button style="border:none;background:none;color:red;font-size:1.2rem;cursor:pointer;" onclick="this.parentElement.remove(); tBtn.disabled=(tList.children.length===0)">×</button></li>`);
+        tIn.value = ''; tBtn.disabled = false;
+    };
+    
+    const analyzeTasks = async () => {
+        const area = document.getElementById('suggestion-area'), steps = document.getElementById('suggestion-steps');
+        const tasks = Array.from(tList.children).map(li => li.querySelector('span').innerText).join(', ');
+        
+        tBtn.disabled = true;
+        area.classList.remove('hidden');
+        steps.innerHTML = '<div class="loading-text" style="text-align:center;">ウッディが作戦を考え中...</div>';
+
+        const prompt = `あなたは映画『トイ・ストーリー』のウッディです。医療現場でマネージャーとして働くユーザーが、以下のタスクを抱えています。
+        これらのタスクを「アイゼンハワーのマトリクス（重要度・緊急度）」に基づいて判断し、「実施した方がいい順番」と「実施時のアドバイス」を出力してください。
+        【条件】
+        ・ウッディの口調（「あんたは俺の相棒だぜ！」「さあ、行くぞ！」など）で親しみやすく。
+        ・前頭前野の疲労を防ぐため、「まずはこれならすぐ終わるという第一歩（15分以内）」を強調すること。
+        ・比喩は多用せず、回りくどい表現を避けて端的に伝えること。
+        【タスク一覧】: ${tasks}`;
+
+        const result = await callGeminiAPI(prompt);
+        steps.innerHTML = result;
+        tBtn.disabled = false;
+    };
+
+    const copyTasks = () => {
+        const text = document.getElementById('suggestion-steps').innerText;
+        navigator.clipboard.writeText(`【Task Go 分析結果】\n${text}`).then(() => {
+            const cBtn = document.getElementById('copy-btn'); const orig = cBtn.innerText;
+            cBtn.innerText = '✅ コピー完了！'; cBtn.style.background = 'var(--ts-green)';
+            setTimeout(() => { cBtn.innerText = orig; cBtn.style.background = 'var(--ts-blue)'; }, 2000);
+        });
+    };
+    const resetTaskGo = () => { tList.innerHTML = ''; tBtn.disabled = true; document.getElementById('suggestion-area').classList.add('hidden'); };
+
+    // --- Be Magical ---
+    let fireworksDuration = 3;
+    let myRoutines = [
+        { text: "リーンゲインズ(16h)", checked: false },
+        { text: "食事は腹八分目", checked: false },
+        { text: "就寝前デジタルリセット", checked: false },
+        { text: "水分摂取(2L)", checked: false }
+    ];
+
+    const renderRoutines = () => {
+        const container = document.getElementById('routine-container');
+        container.innerHTML = myRoutines.map((r, i) => `
+            <div class="routine-item ${r.checked ? 'checked' : ''}" onclick="toggleRoutine(${i})">${r.text}</div>
+        `).join('');
+        renderSettingsRoutines();
+    };
+
+    const renderSettingsRoutines = () => {
+        const container = document.getElementById('settings-routine-list');
+        container.innerHTML = myRoutines.map((r, i) => `
+            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:8px; margin-bottom:5px;">
+                <span style="font-size:0.9rem; color:#fff;">${r.text}</span>
+                <button style="background:none; border:none; color:var(--ml-red); cursor:pointer; font-weight:bold; font-size:1.2rem;" onclick="deleteRoutine(${i})">×</button>
+            </div>
+        `).join('');
+    };
+
+    const calcCountdown = () => {
+        const targetStr = document.getElementById('setting-date').value;
+        if(!targetStr) return;
+        const targetDate = new Date(targetStr);
+        const today = new Date(); today.setHours(0,0,0,0);
+        const diff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+        document.getElementById('countdown-val').innerText = diff > 0 ? `${diff} Days` : "0 Days";
+    };
+
+    const openMagicSettings = () => { document.getElementById('magic-settings-modal').classList.remove('hidden'); document.getElementById('magic-settings-modal').style.display = 'flex'; };
+    const closeMagicSettings = (save) => {
+        if(save) {
+            calcCountdown();
+            fireworksDuration = parseInt(document.getElementById('setting-fw-time').value) || 3;
+        } else { renderRoutines(); }
+        document.getElementById('magic-settings-modal').classList.add('hidden');
+    };
+    const addRoutine = () => {
+        const input = document.getElementById('new-routine-input');
+        if(input.value.trim()) { myRoutines.push({ text: input.value.trim(), checked: false }); input.value = ''; renderRoutines(); }
+    };
+    const deleteRoutine = (index) => { myRoutines.splice(index, 1); renderRoutines(); };
+    const toggleRoutine = (index) => {
+        myRoutines[index].checked = !myRoutines[index].checked;
+        renderRoutines();
+        const allChecked = myRoutines.length > 0 && myRoutines.every(r => r.checked);
+        if(allChecked) {
+            const fw = document.getElementById('fireworks-container');
+            fw.classList.remove('hidden');
+            setTimeout(() => { fw.classList.add('hidden'); }, fireworksDuration * 1000);
+        }
+    };
+    renderRoutines();
+
+    // --- Journal ---
+    let jTimer; let journalCount = 0;
+    const startJournal = (m, btn) => {
+        document.querySelectorAll('.cc-time-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
+        const input = document.getElementById('journal-input'), msg = document.getElementById('j-msg');
+        input.disabled = false; input.value = ''; input.classList.remove('fog-fade'); msg.classList.add('hidden'); input.focus();
+        let tl = m * 60; clearInterval(jTimer);
+        jTimer = setInterval(() => {
+            tl--; 
+            document.getElementById('j-timer').innerText = `${String(Math.floor(tl/60)).padStart(2,'0')}:${String(tl%60).padStart(2,'0')}`;
+            if(tl<=0) { 
+                clearInterval(jTimer); input.disabled=true; input.classList.add('fog-fade'); 
+                journalCount++; document.getElementById('journal-counter-display').innerText = `これまでに海に流した思考: ${journalCount}回`;
+                setTimeout(()=>msg.classList.remove('hidden'), 4000); 
+            }
+        }, 1000);
+    };
+    const resetJournal = () => { clearInterval(jTimer); document.getElementById('journal-input').value=''; document.getElementById('j-timer').innerText='00:00'; };
+
+    // --- Scan (AI Integration) ---
+    const runScan = () => {
+        const text = document.getElementById('scan-input').value; if(!text) return;
+        const ov = document.getElementById('breathe-overlay'), c = document.getElementById('b-circle'), btn = document.getElementById('scan-execute-btn');
+        btn.disabled = true;
+        ov.classList.remove('hidden'); ov.style.display = 'flex'; c.innerText = "吸って...";
+        setTimeout(()=> { c.style.transform = 'scale(1.8)'; }, 100);
+        setTimeout(()=> { c.innerText = "吐いて..."; c.style.transform = 'scale(1)'; }, 4000);
+        setTimeout(async ()=> {
+            ov.classList.add('hidden');
+            document.getElementById('scan-res').classList.remove('hidden');
+            document.getElementById('scan-res-text').innerHTML = '<div class="loading-text" style="text-align:center;">スキャン中...</div>';
+            
+            const prompt = `あなたはケア・ロボットのベイマックスです。医療マネージャーとして忙しく働くユーザーが、以下の状況や感情を入力しました。
+            これに対して、適切なリラックス法を提示してください。
+            【条件】
+            ・医療ロボットとしての視点と優しさを持ち、ディズニーの世界観（ディズニーリゾートやキャラクター、またはサウナでのリラックスなど）を少しだけ交えること。
+            ・前頭前野を休ませるようなアドバイスをすること。
+            ・比喩は多用せず、読み手に寄り添いながらも端的な表現にすること。回りくどい表現は厳禁。
+            【入力】: ${text}`;
+            
+            const result = await callGeminiAPI(prompt);
+            document.getElementById('scan-res-text').innerText = result;
+            btn.disabled = false;
+        }, 8000);
+    };
+
+    // --- Mood Log (AI Integration) ---
+    let moodLogs = [];
+    const mlArea = document.getElementById('ml-scale-area');
+    const faces = ["😊","🙂","😐","😑","😕","😟","😣","😖","😫","😭"];
+    for(let i=1; i<=10; i++){
+        mlArea.insertAdjacentHTML('beforeend', `<div class="ml-box" onclick="selectMood(this)"><div class="face">${faces[i-1]}</div><div>${i}</div></div>`);
+    }
+    const selectMood = (el) => { document.querySelectorAll('.ml-box').forEach(b=>b.classList.remove('active')); el.classList.add('active'); };
+    
+    const saveMood = async () => { 
+        const activeBox = document.querySelector('.ml-box.active');
+        if(!activeBox) return alert("10段階で気分を選択してください。");
+        
+        const btn = document.getElementById('mood-execute-btn');
+        btn.disabled = true;
+        btn.innerText = "AIが分析中...";
+
+        const score = activeBox.querySelector('div:last-child').innerText;
+        const tags = Array.from(document.querySelectorAll('.ml-tag.active')).map(t => t.innerText);
+        
+        const d = new Date();
+        const dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        moodLogs.unshift({ date: dateStr, score, tags });
+        renderMoodLogs();
+
+        const prompt = `あなたはケア・ロボットのベイマックスです。多忙な医療マネージャーのユーザーが、今の気分を記録しました。
+        【心の痛み（10段階）】: ${score}
+        【選んだタグ】: ${tags.length > 0 ? tags.join(', ') : 'なし'}
+        この状態に対する適切な対処法や労いの言葉を教えてください。
+        【条件】
+        ・ベイマックスの口調で。
+        ・端的に、読み手に寄り添う表現で。回りくどい言い回しは避けること。`;
+
+        const aiMessage = await callGeminiAPI(prompt);
+
+        document.getElementById('mood-popup-msg').innerText = aiMessage;
+        document.getElementById('mood-popup').classList.remove('hidden');
+        document.getElementById('mood-popup').style.display = 'flex';
+
+        document.querySelectorAll('.ml-box, .ml-tag').forEach(el => el.classList.remove('active'));
+        btn.innerText = "SAVE LOG";
+        btn.disabled = false;
+    };
+
+    const renderMoodLogs = () => {
+        const container = document.getElementById('mood-log-list');
+        if(moodLogs.length === 0) return;
+        
+        container.innerHTML = moodLogs.map(log => `
+            <div style="background:#fff; border:1px solid #ddd; padding:12px; border-radius:12px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:bold; color:var(--ml-red);">Score: ${log.score}</span>
+                    <span style="font-size:0.8rem; color:#888;">${log.date}</span>
+                </div>
+                <div style="margin-top:5px; font-size:0.85rem; color:#555;">
+                    ${log.tags.length > 0 ? log.tags.map(t => `<span style="background:rgba(33,150,243,0.1); color:var(--ml-blue); padding:2px 6px; border-radius:10px; margin-right:5px; display:inline-block; margin-bottom:4px;">${t}</span>`).join('') : 'タグなし'}
+                </div>
+            </div>
+        `).join('');
+    };
+
+</script>
+</body>
+</html>
