@@ -17,68 +17,119 @@
             --sc-bg: #0d1b2a; --sc-turq: #00b4d8; --sc-turq-light: #90e0ef;
             --ml-white: #ffffff; --ml-red: #ff3366; --ml-blue: #2196f3; --ml-gray: #f5f5f7;
             --text-main: #2c3e50; --glass: rgba(255, 255, 255, 0.7);
+            --nav-height: 65px;
         }
 
-        /* 画面全体のスクロールを止め、高さを100%に固定 */
-        html, body { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            font-family: 'Avenir Next', sans-serif; color: var(--text-main); 
-            overflow: hidden; background-color: #000; /* PC用の外枠黒背景 */
+        html {
+            height: 100%;
+            height: 100dvh;
         }
-        
-        /* Flexboxによる確実な上下分割レイアウト */
-        .app-container { 
-            width: 100%; max-width: 600px; height: 100%; 
-            margin: 0 auto; background: var(--tm-bg); 
-            display: flex; flex-direction: column; position: relative;
-        }
-        
-        /* タブバー以外の残りの領域をすべて占有するコンテナ */
-        .screen-container { 
-            flex: 1; /* 空間をすべて埋める */
-            position: relative; 
-            overflow: hidden; 
-            width: 100%; 
+        body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            font-family: 'Avenir Next', sans-serif;
+            color: var(--text-main);
+            overflow: hidden;
+            background-color: #000;
         }
 
-        /* 各スクリーンの設定（親のscreen-containerの中でスクロールする） */
-        .screen { 
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
-            display: flex; flex-direction: column; align-items: center; 
-            overflow-y: auto; -webkit-overflow-scrolling: touch; 
-            padding-bottom: 20px; /* スクロール最下部の余白 */
+        .app-container {
+            width: 100%;
+            max-width: 600px;
+            height: 100%;
+            height: 100dvh;
+            margin: 0 auto;
+            background: var(--tm-bg);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-sizing: border-box;
         }
-        
+
+        .screen-container {
+            flex: 1;
+            min-height: 0;
+            position: relative;
+            overflow: hidden;
+            width: 100%;
+        }
+
+        .screen {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            display: flex; flex-direction: column; align-items: center;
+            overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding-bottom: 20px;
+        }
+
         .hidden { display: none !important; }
         .flex-center { display: flex; justify-content: center; align-items: center; }
         .base-btn { border: none; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .base-btn:active { transform: scale(0.95); }
         .base-btn:disabled { opacity: 0.6; cursor: not-allowed; }
-        
+
         .content-width { width: 90%; max-width: 500px; margin-top: 25px; }
-        
-        /* ヘッダー（ノッチ回避） */
-        .header { 
-            width: 100%; padding: calc(15px + env(safe-area-inset-top)) 0 15px 0; 
-            display: flex; align-items: center; justify-content: space-between; 
-            position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.1); 
+
+        .header {
+            width: 100%; padding: calc(15px + env(safe-area-inset-top)) 0 15px 0;
+            display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; z-index: 10;
+            background: rgba(255,255,255,0.1);
             backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
         }
         .screen-title { font-size: 1.3rem; font-weight: 900; margin-left: 20px; flex-grow: 1; letter-spacing: 1px; }
 
-        /* ボトムナビゲーション（絶対に画面の最下部に留まる） */
-        .bottom-nav { 
-            flex-shrink: 0; /* 縮小させない */
-            width: 100%; 
-            padding-bottom: env(safe-area-inset-bottom); /* iOSホームバー回避 */
-            height: calc(65px + env(safe-area-inset-bottom)); 
-            background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
-            display: flex; justify-content: space-around; align-items: center; 
-            border-top: 1px solid rgba(0,0,0,0.1); z-index: 50; 
+        .bottom-nav {
+            flex-shrink: 0;
+            width: 100%;
+            height: calc(var(--nav-height) + env(safe-area-inset-bottom));
+            padding-bottom: env(safe-area-inset-bottom);
+            background: rgba(255,255,255,0.97);
+            backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+            display: flex;
+            justify-content: space-around;
+            align-items: flex-start;
+            padding-top: 8px;
+            border-top: 1px solid rgba(0,0,0,0.08);
+            box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+            z-index: 50;
+            box-sizing: border-box;
         }
-        .nav-item { text-align: center; font-size: 1.4rem; cursor: pointer; color: #a0a0a0; transition: 0.2s; flex: 1; -webkit-tap-highlight-color: transparent; }
-        .nav-item span { display: block; font-size: 0.65rem; font-weight: bold; margin-top: 3px; }
+
+        .nav-item {
+            text-align: center;
+            cursor: pointer;
+            color: #b0b0b0;
+            flex: 1;
+            -webkit-tap-highlight-color: transparent;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 3px;
+            transition: color 0.25s ease;
+            position: relative;
+        }
+
+        .nav-item .nav-icon {
+            font-size: 1.4rem;
+            display: block;
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1), font-size 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            line-height: 1;
+        }
+        .nav-item .nav-label {
+            display: block;
+            font-size: 0.62rem;
+            font-weight: 700;
+            letter-spacing: 0.3px;
+            transition: color 0.25s ease, opacity 0.25s ease;
+        }
+
         .nav-item.active { color: var(--tm-cyan); }
+        .nav-item.active .nav-icon {
+            font-size: 2rem;
+            transform: translateY(-4px);
+            filter: drop-shadow(0 2px 6px rgba(0, 229, 255, 0.5));
+        }
+        .nav-item.active .nav-label { font-weight: 900; opacity: 1; }
 
         @keyframes blink { 0%, 93%, 100% { transform: scaleY(1); } 96% { transform: scaleY(0.1); } }
         .baymax-eye { display: inline-block; animation: blink 5s infinite; }
@@ -92,13 +143,8 @@
         .live-time { font-size: 2.8rem; font-weight: 300; letter-spacing: 4px; color: var(--text-main); margin-top: 5px; }
         #baymax-msg { padding: 15px 25px; margin-top: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.5); width: 80%; margin-left: auto; margin-right: auto; min-height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.5; transition: opacity 0.5s ease; border-radius: 12px; background: rgba(255,255,255,0.7); backdrop-filter: blur(10px); }
         .emergency-btn { margin-top: 40px; padding: 15px 40px; border-radius: 30px; background: var(--tm-silver); color: var(--tm-cyan); font-size: 1.1rem; border: 2px solid var(--tm-cyan); box-shadow: 0 5px 20px rgba(0,229,255,0.3); letter-spacing: 2px; }
-        
         .hamburger-icon { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; width: 30px; height: 20px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 20; padding: 5px; }
         .hamburger-icon span { display: block; width: 100%; height: 3px; background-color: var(--text-main); border-radius: 2px; }
-
-        /* --- Global Settings Modal --- */
-        #global-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; flex-direction:column; padding-top: calc(60px + env(safe-area-inset-top)); }
-        .global-setting-card { background: #fff; border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 
         /* --- TASK GO --- */
         #taskgo-screen { background: var(--ts-blue); background-image: radial-gradient(circle at 20% 30%, #fff 5%, transparent 6%), radial-gradient(circle at 80% 60%, #fff 8%, transparent 9%); background-size: 300px 300px; }
@@ -111,10 +157,8 @@
         /* --- BE MAGICAL --- */
         #bemagical-screen { background: linear-gradient(180deg, #020024 0%, var(--fm-night) 60%, #000 100%); color: #e0e0e0; }
         #bemagical-screen .screen-title { color: transparent; background: linear-gradient(45deg, var(--fm-gold), #fff, var(--fm-gold)); -webkit-background-clip: text; text-shadow: 0 0 15px var(--fm-gold); }
-        .setting-icon { font-size: 1.5rem; cursor: pointer; margin-right: 20px; position: relative; }
-        #magic-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; flex-direction:column; padding-top: calc(40px + env(safe-area-inset-top)); }
-        .magic-setting-card { background: var(--fm-night); border: 2px solid var(--fm-gold); border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; color: #fff; box-shadow: 0 0 30px rgba(255,215,0,0.2); }
-        .setting-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--fm-blue); background: rgba(255,255,255,0.1); color: #fff; box-sizing: border-box; font-size: 1rem; margin-top: 8px; -webkit-appearance: none;}
+        .setting-icon { font-size: 1.5rem; cursor: pointer; margin-right: 20px; }
+        .setting-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--fm-blue); background: rgba(255,255,255,0.1); color: #fff; box-sizing: border-box; font-size: 1rem; margin-top: 8px; -webkit-appearance: none; }
         .fm-card { background: rgba(10,10,40,0.7); border: 1px solid rgba(255,215,0,0.3); border-radius: 15px; padding: 18px; margin-bottom: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
         .routine-item { display: block; padding: 15px; margin-bottom: 8px; background: rgba(255,255,255,0.05); border-radius: 10px; cursor: pointer; transition: 0.3s; text-align: center; border: 1px solid transparent; font-weight: bold; }
         .routine-item.checked { background: rgba(255,215,0,0.15); border: 1px solid var(--fm-gold); color: var(--fm-gold); box-shadow: inset 0 0 10px rgba(255,215,0,0.1); transform: scale(0.98); }
@@ -130,15 +174,14 @@
         #journal-screen .screen-title { color: var(--cc-wood); font-family: 'Georgia', serif; text-align: center; margin-left: 0; }
         .cc-time-btn { padding: 10px; flex: 1; background: rgba(255,255,255,0.6); border: 1px solid var(--cc-wood); color: var(--cc-wood); }
         .cc-time-btn.active { background: var(--cc-wood); color: #fff; }
-        #journal-input { width: 100%; box-sizing: border-box; min-height: 40vh; resize: none; border: 2px solid rgba(123,107,97,0.2); background: rgba(255,255,255,0.5); padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.6; transition: 1s; -webkit-appearance: none;}
+        #journal-input { width: 100%; box-sizing: border-box; min-height: 40vh; resize: none; border: 2px solid rgba(123,107,97,0.2); background: rgba(255,255,255,0.5); padding: 15px; border-radius: 15px; font-size: 1rem; line-height: 1.6; transition: 1s; -webkit-appearance: none; }
         .fog-fade { filter: blur(10px); opacity: 0; transition: filter 4s, opacity 4s; }
 
         /* --- SCAN --- */
         #scan-screen { background: var(--sc-bg); color: var(--sc-turq-light); background-image: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,180,216,0.03) 2px, rgba(0,180,216,0.03) 4px); }
         #scan-screen .screen-title { color: var(--sc-turq); text-align: center; margin-left: 0; }
-        .sc-panel { background: rgba(0, 180, 216, 0.08); padding: 20px; border-radius: 15px; border: 1px solid var(--sc-turq); text-align: center; }
-        #scan-input { width: 100%; box-sizing: border-box; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--sc-turq); color: var(--sc-turq-light); border-radius: 10px; resize: none; font-size: 1rem; -webkit-appearance: none;}
-        #breathe-overlay { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(13,27,42,0.98); z-index: 1000; flex-direction: column; }
+        .sc-panel { background: rgba(0,180,216,0.08); padding: 20px; border-radius: 15px; border: 1px solid var(--sc-turq); text-align: center; }
+        #scan-input { width: 100%; box-sizing: border-box; padding: 12px; background: rgba(0,0,0,0.4); border: 1px solid var(--sc-turq); color: var(--sc-turq-light); border-radius: 10px; resize: none; font-size: 1rem; -webkit-appearance: none; }
         .breathe-circle { width: 140px; height: 140px; border-radius: 50%; background: radial-gradient(circle, var(--sc-turq) 0%, transparent 80%); transition: 4s ease-in-out; border: 1px solid var(--sc-turq); box-shadow: 0 0 30px var(--sc-turq); }
 
         /* --- MOOD LOG --- */
@@ -146,17 +189,14 @@
         #mood-screen .screen-title { color: var(--ml-red); text-align: center; margin-left: 0; }
         .ml-card { background: #fff; padding: 20px; border-radius: 18px; box-shadow: 0 8px 20px rgba(0,0,0,0.05); margin-bottom: 15px; }
         .ml-scale { display: grid; grid-template-columns: repeat(5, 1fr); gap: 10px; margin-top: 15px; }
-        .ml-box { aspect-ratio: 1/1.1; border: 2px solid #eee; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent;}
+        .ml-box { aspect-ratio: 1/1.1; border: 2px solid #eee; border-radius: 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; font-size: 0.8rem; cursor: pointer; transition: 0.2s; -webkit-tap-highlight-color: transparent; }
         .ml-box .face { font-size: 1.8rem; margin-bottom: 5px; }
         .ml-box.active { border-color: var(--ml-red); background: rgba(255,51,102,0.1); transform: translateY(-3px); box-shadow: 0 5px 15px rgba(255,51,102,0.15); }
         .ml-tag-grid { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 15px; }
-        .ml-tag { padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; cursor: pointer; color: #555; -webkit-tap-highlight-color: transparent;}
+        .ml-tag { padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; cursor: pointer; color: #555; -webkit-tap-highlight-color: transparent; }
         .ml-tag.active { background: var(--ml-blue); color: #fff; border-color: var(--ml-blue); }
-        #mood-popup { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; flex-direction:column; padding-top: calc(20px + env(safe-area-inset-top)); }
-        .mood-popup-card { background: #fff; border-radius: 20px; padding: 30px; width: 80%; max-width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 
-        /* --- SOS OVERLAY --- */
-        #sos-overlay { background: linear-gradient(270deg, #e0f2f1, #b2dfdb, #80cbc4, #e0f2f1); background-size: 800% 800%; animation: waveGradient 8s ease infinite; z-index: 1000; flex-direction: column; position: absolute; top:0; left:0; width:100%; height:100%; }
+        /* --- SOS --- */
         @keyframes waveGradient { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
         .ticker-wrapper { position: absolute; width: 100%; height: 35px; overflow: hidden; display: flex; align-items: center; }
         .ticker-text { white-space: nowrap; font-size: 1.5rem; color: #78909c; font-weight: 900; animation: scrollTickerText 15s linear infinite; }
@@ -168,27 +208,24 @@
 <div class="app-container">
 
     <div class="screen-container">
-        
+
+        <!-- HOME -->
         <div id="home-screen" class="screen">
             <div class="hamburger-icon" onclick="openGlobalSettings()">
-                <span></span>
-                <span></span>
-                <span></span>
+                <span></span><span></span><span></span>
             </div>
-            
             <div class="clock-container" style="margin-top: calc(60px + env(safe-area-inset-top));">
                 <div id="live-date" class="live-date">--年--月--日(--)</div>
                 <div id="live-time" class="live-time">00:00:00</div>
             </div>
-            
             <div style="text-align: center;" onclick="changeHomeQuote()">
                 <div style="font-size: 55px; font-weight: bold;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
-                <div class="glass-panel" id="baymax-msg">こんにちは。私はベイマックス。<br>あなたの健康を守ります。</div>
+                <div id="baymax-msg">こんにちは。私はベイマックス。<br>あなたの健康を守ります。</div>
             </div>
-
             <button class="flex-center base-btn emergency-btn" onclick="toggleSOS(true)">EMERGENCY SOS</button>
         </div>
 
+        <!-- TASK GO -->
         <div id="taskgo-screen" class="screen hidden">
             <div class="header"><div class="screen-title">Task Go</div></div>
             <div class="content-width" style="display:flex; gap:10px;">
@@ -201,38 +238,34 @@
             </div>
             <div id="suggestion-area" class="content-width hidden" style="background:#fff; border:4px solid var(--ts-green); border-radius:20px; padding:20px;">
                 <div style="color:var(--ts-green); font-weight:800; text-align:center; margin-bottom:15px;">🚀 AI OPTIMIZED ROUTE</div>
-                <div id="suggestion-steps" style="line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap;"></div>
-                
-                <div style="display: flex; gap: 10px; margin-top: 20px;">
-                    <button id="copy-btn" class="base-btn" style="flex: 2; padding:12px; background:var(--ts-blue); color:#fff;" onclick="copyTasks()">📋 結果をコピー</button>
-                    <button class="base-btn" style="flex: 1; padding:12px; background:#ddd; color:#333;" onclick="resetTaskGo()">🔄 リセット</button>
+                <div id="suggestion-steps" style="line-height:1.6; font-size:0.95rem; white-space:pre-wrap;"></div>
+                <div style="display:flex; gap:10px; margin-top:20px;">
+                    <button id="copy-btn" class="base-btn" style="flex:2; padding:12px; background:var(--ts-blue); color:#fff;" onclick="copyTasks()">📋 結果をコピー</button>
+                    <button class="base-btn" style="flex:1; padding:12px; background:#ddd; color:#333;" onclick="resetTaskGo()">🔄 リセット</button>
                 </div>
             </div>
         </div>
 
+        <!-- BE MAGICAL -->
         <div id="bemagical-screen" class="screen hidden">
-            <div class="header" style="border-bottom: 1px solid rgba(0,191,255,0.2);">
+            <div class="header" style="border-bottom:1px solid rgba(0,191,255,0.2);">
                 <div class="screen-title">Be Magical!</div>
                 <span class="setting-icon" onclick="openMagicSettings()">⚙️</span>
             </div>
-            
             <div id="fireworks-container" class="hidden">
-                <div class="firework fw1"></div>
-                <div class="firework fw2"></div>
-                <div class="firework fw3"></div>
+                <div class="firework fw1"></div><div class="firework fw2"></div><div class="firework fw3"></div>
             </div>
-
-            <div class="content-width fm-card" style="text-align: center; position: relative; z-index: 10;">
-                <div style="color:var(--fm-blue); font-size: 0.9rem;">✨ NEXT IN-PARK UNTIL...</div>
-                <div id="countdown-val" style="font-size: 3.5rem; font-weight: 900; color: var(--fm-gold); margin: 10px 0;">-- Days</div>
+            <div class="content-width fm-card" style="text-align:center; position:relative; z-index:10;">
+                <div style="color:var(--fm-blue); font-size:0.9rem;">✨ NEXT IN-PARK UNTIL...</div>
+                <div id="countdown-val" style="font-size:3.5rem; font-weight:900; color:var(--fm-gold); margin:10px 0;">-- Days</div>
             </div>
-            
-            <div class="content-width fm-card" style="position: relative; z-index: 10;">
-                <div style="color:var(--fm-blue); font-weight: bold; margin-bottom: 15px;">✨ DAILY CONDITIONING</div>
+            <div class="content-width fm-card" style="position:relative; z-index:10;">
+                <div style="color:var(--fm-blue); font-weight:bold; margin-bottom:15px;">✨ DAILY CONDITIONING</div>
                 <div id="routine-container"></div>
             </div>
         </div>
 
+        <!-- JOURNAL -->
         <div id="journal-screen" class="screen hidden">
             <div class="header"><div class="screen-title">Journal</div></div>
             <div class="content-width flex-center" style="gap:10px;">
@@ -241,16 +274,15 @@
                 <button class="base-btn cc-time-btn" onclick="startJournal(5, this)">5m</button>
             </div>
             <div id="j-timer" style="font-size:2.5rem; margin-top:15px; color:var(--cc-dark); font-weight:300;">00:00</div>
-            
             <div class="content-width"><textarea id="journal-input" placeholder="頭の中のキャッシュを全て書き出してください..." disabled></textarea></div>
-            <div id="journal-counter-display" style="margin-top: 15px; color: var(--cc-dark); font-weight: bold; font-size: 0.9rem; text-align: center;">これまでに海に流した思考: 0回</div>
-
+            <div id="journal-counter-display" style="margin-top:15px; color:var(--cc-dark); font-weight:bold; font-size:0.9rem; text-align:center;">これまでに海に流した思考: 0回</div>
             <div id="j-msg" class="hidden" style="text-align:center; color:var(--cc-dark); margin-top:20px;">
                 <div style="font-size:2rem;">🌊</div>
                 <div style="font-weight:bold;">思考は海へと溶けました。</div>
             </div>
         </div>
 
+        <!-- SCAN -->
         <div id="scan-screen" class="screen hidden">
             <div class="header"><div class="screen-title">SCAN SYSTEM</div></div>
             <div class="content-width sc-panel">
@@ -260,18 +292,17 @@
             </div>
             <div id="scan-res" class="content-width sc-panel hidden" style="margin-top:30px; border-style:double; position:relative;">
                 <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--sc-bg); padding:0 10px; color:var(--sc-turq); font-size:0.8rem;">AI REFRAMED</div>
-                <div id="scan-res-text" style="line-height:1.6; font-size:0.95rem; white-space: pre-wrap; text-align: left;"></div>
+                <div id="scan-res-text" style="line-height:1.6; font-size:0.95rem; white-space:pre-wrap; text-align:left;"></div>
             </div>
         </div>
 
+        <!-- MOOD -->
         <div id="mood-screen" class="screen hidden">
             <div class="header"><div class="screen-title">Mood Log</div></div>
-            
             <div class="content-width ml-card">
-                <div style="font-weight:bold; text-align:center; margin-bottom: 10px;">「10段階で、心の痛みは？」</div>
+                <div style="font-weight:bold; text-align:center; margin-bottom:10px;">「10段階で、心の痛みは？」</div>
                 <div id="ml-scale-area" class="ml-scale"></div>
             </div>
-            
             <div class="content-width ml-card">
                 <div style="font-weight:bold;">感性タグ（今の気分に近いもの）</div>
                 <div class="ml-tag-grid">
@@ -295,112 +326,117 @@
             <div class="content-width">
                 <button id="mood-execute-btn" class="base-btn" style="width:100%; padding:18px; background:var(--ml-red); color:#fff;" onclick="saveMood()">SAVE LOG</button>
             </div>
-            
             <div class="content-width">
                 <div style="font-weight:bold; color:#555; margin-bottom:10px;">📝 過去の記録</div>
-                <div id="mood-log-list" style="padding-bottom: 20px;">
+                <div id="mood-log-list" style="padding-bottom:20px;">
                     <div style="text-align:center; color:#999; font-size:0.85rem;">まだ記録はありません。</div>
                 </div>
             </div>
         </div>
 
-        </div> <div id="global-settings-modal" class="hidden flex-center">
-        <div class="global-setting-card">
-            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main);">⚙️ System Settings</div>
-            <div style="margin-bottom: 15px;">
-                <span style="font-size: 0.9rem; color: #555; font-weight: bold;">Gemini API Key</span>
-                <input type="password" id="api-key-input" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #fafafa; color: #333; box-sizing: border-box; font-size: 1rem; margin-top: 8px;" placeholder="AIzaSy...">
-                <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">※APIキーはブラウザにのみ保存され、外部には送信されません。</div>
+    </div><!-- /.screen-container -->
+
+    <!-- MODALS & OVERLAYS -->
+    <div id="global-settings-modal" class="hidden flex-center" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:2000;flex-direction:column;padding-top:calc(60px + env(safe-area-inset-top));box-sizing:border-box;">
+        <div style="background:#fff;border-radius:20px;padding:25px;width:85%;max-width:400px;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <div style="font-size:1.2rem;font-weight:bold;margin-bottom:20px;text-align:center;">⚙️ System Settings</div>
+            <div style="margin-bottom:15px;">
+                <span style="font-size:0.9rem;color:#555;font-weight:bold;">Gemini API Key</span>
+                <input type="password" id="api-key-input" style="width:100%;padding:12px;border-radius:10px;border:1px solid #ccc;background:#fafafa;color:#333;box-sizing:border-box;font-size:1rem;margin-top:8px;" placeholder="AIzaSy...">
+                <div style="font-size:0.75rem;color:#888;margin-top:5px;">※APIキーはブラウザにのみ保存されます。</div>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 30px;">
-                <button class="base-btn" style="flex:1; padding:12px; background:#ddd; color:#333;" onclick="closeGlobalSettings(false)">キャンセル</button>
-                <button class="base-btn" style="flex:1; padding:12px; background:var(--tm-cyan); color:#fff;" onclick="closeGlobalSettings(true)">保存</button>
+            <div style="display:flex;gap:10px;margin-top:30px;">
+                <button class="base-btn" style="flex:1;padding:12px;background:#ddd;color:#333;" onclick="closeGlobalSettings(false)">キャンセル</button>
+                <button class="base-btn" style="flex:1;padding:12px;background:var(--tm-cyan);color:#fff;" onclick="closeGlobalSettings(true)">保存</button>
             </div>
         </div>
     </div>
 
-    <div id="magic-settings-modal" class="hidden flex-center">
-        <div class="magic-setting-card">
-            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--fm-gold);">⚙️ Magic Settings</div>
-            <div style="margin-bottom: 15px;">
-                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">インパーク予定日</span>
+    <div id="magic-settings-modal" class="hidden flex-center" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);z-index:2000;flex-direction:column;padding-top:calc(40px + env(safe-area-inset-top));box-sizing:border-box;">
+        <div style="background:var(--fm-night);border:2px solid var(--fm-gold);border-radius:20px;padding:25px;width:85%;max-width:400px;color:#fff;box-shadow:0 0 30px rgba(255,215,0,0.2);">
+            <div style="font-size:1.2rem;font-weight:bold;margin-bottom:20px;text-align:center;color:var(--fm-gold);">⚙️ Magic Settings</div>
+            <div style="margin-bottom:15px;">
+                <span style="font-size:0.9rem;color:var(--fm-blue);font-weight:bold;">インパーク予定日</span>
                 <input type="date" id="setting-date" class="setting-input" value="2026-06-12">
             </div>
-            <div style="margin-bottom: 20px;">
-                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">花火の演出時間 (秒)</span>
+            <div style="margin-bottom:20px;">
+                <span style="font-size:0.9rem;color:var(--fm-blue);font-weight:bold;">花火の演出時間 (秒)</span>
                 <input type="number" id="setting-fw-time" class="setting-input" min="1" max="10" value="3">
             </div>
-            <div style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(0,191,255,0.3);">
-                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold; display:block; margin-bottom:8px;">ルーティンの編集</span>
-                <div id="settings-routine-list" style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;"></div>
-                <div style="display: flex; gap: 10px;">
+            <div style="margin-bottom:20px;padding-top:15px;border-top:1px solid rgba(0,191,255,0.3);">
+                <span style="font-size:0.9rem;color:var(--fm-blue);font-weight:bold;display:block;margin-bottom:8px;">ルーティンの編集</span>
+                <div id="settings-routine-list" style="max-height:120px;overflow-y:auto;margin-bottom:10px;"></div>
+                <div style="display:flex;gap:10px;">
                     <input type="text" id="new-routine-input" class="setting-input" style="margin-top:0;" placeholder="新しいルーティンを追加...">
-                    <button class="base-btn" style="background:var(--fm-blue); color:#fff; padding:0 15px;" onclick="addRoutine()">＋</button>
+                    <button class="base-btn" style="background:var(--fm-blue);color:#fff;padding:0 15px;" onclick="addRoutine()">＋</button>
                 </div>
             </div>
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="base-btn" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); color:#fff;" onclick="closeMagicSettings(false)">キャンセル</button>
-                <button class="base-btn" style="flex:1; padding:12px; background:var(--fm-gold); color:#000;" onclick="closeMagicSettings(true)">保存</button>
+            <div style="display:flex;gap:10px;margin-top:20px;">
+                <button class="base-btn" style="flex:1;padding:12px;background:rgba(255,255,255,0.2);color:#fff;" onclick="closeMagicSettings(false)">キャンセル</button>
+                <button class="base-btn" style="flex:1;padding:12px;background:var(--fm-gold);color:#000;" onclick="closeMagicSettings(true)">保存</button>
             </div>
         </div>
     </div>
 
-    <div id="mood-popup" class="hidden flex-center">
-        <div class="mood-popup-card">
-            <div style="font-size: 40px;">（⚫︎ー⚫︎）</div>
-            <div id="mood-popup-msg" style="margin: 20px 0; font-weight: bold; color: #555; line-height: 1.6; white-space: pre-wrap;"></div>
-            <button class="base-btn" style="padding: 10px 30px; background: var(--ml-blue); color: #fff;" onclick="document.getElementById('mood-popup').classList.add('hidden')">OK</button>
+    <div id="mood-popup" class="hidden flex-center" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.6);z-index:2000;flex-direction:column;">
+        <div style="background:#fff;border-radius:20px;padding:30px;width:80%;max-width:350px;text-align:center;box-shadow:0 10px 40px rgba(0,0,0,0.3);">
+            <div style="font-size:40px;">（⚫︎ー⚫︎）</div>
+            <div id="mood-popup-msg" style="margin:20px 0;font-weight:bold;color:#555;line-height:1.6;white-space:pre-wrap;"></div>
+            <button class="base-btn" style="padding:10px 30px;background:var(--ml-blue);color:#fff;" onclick="document.getElementById('mood-popup').classList.add('hidden')">OK</button>
         </div>
     </div>
 
-    <div id="breathe-overlay" class="hidden flex-center">
-        <div style="color:var(--sc-turq); text-align:center; margin-bottom:40px;">[ SYNCING HEART RATE ]<br><span style="font-weight:normal; opacity:0.7;">自律神経を同期しています...</span></div>
+    <div id="breathe-overlay" class="hidden flex-center" style="position:absolute;top:0;left:0;width:100%;height:100%;background:rgba(13,27,42,0.98);z-index:2000;flex-direction:column;">
+        <div style="color:var(--sc-turq);text-align:center;margin-bottom:40px;">[ SYNCING HEART RATE ]<br><span style="font-weight:normal;opacity:0.7;">自律神経を同期しています...</span></div>
         <div id="b-circle" class="breathe-circle flex-center">...</div>
     </div>
 
-    <div id="sos-overlay" class="screen flex-center hidden" onclick="toggleSOS(false)">
+    <div id="sos-overlay" class="flex-center hidden" style="position:absolute;top:0;left:0;width:100%;height:100%;z-index:3000;flex-direction:column;background:linear-gradient(270deg,#e0f2f1,#b2dfdb,#80cbc4,#e0f2f1);background-size:800% 800%;animation:waveGradient 8s ease infinite;" onclick="toggleSOS(false)">
         <div class="ticker-wrapper" style="top:calc(60px + env(safe-area-inset-top));">
-            <div class="ticker-text">
-                WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
-                WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
-            </div>
+            <div class="ticker-text">WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ </div>
         </div>
         <div style="font-size:60px;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
-        <div style="text-align:center; color:#546e7a; margin-top:20px; line-height:1.8; font-weight: bold;">大丈夫ですよ。<br>ゆっくりと深呼吸をしましょう。</div>
+        <div style="text-align:center;color:#546e7a;margin-top:20px;line-height:1.8;font-weight:bold;">大丈夫ですよ。<br>ゆっくりと深呼吸をしましょう。</div>
         <div class="ticker-wrapper" style="bottom:calc(60px + env(safe-area-inset-bottom));">
-            <div class="ticker-text">
-                Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
-                Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
-            </div>
+            <div class="ticker-text">Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ </div>
         </div>
     </div>
 
+    <!-- BOTTOM NAV -->
     <nav class="bottom-nav">
-        <div class="nav-item active" onclick="switchTab('home-screen', this)">🤍<span>Home</span></div>
-        <div class="nav-item" onclick="switchTab('taskgo-screen', this)">🩹<span>Task</span></div>
-        <div class="nav-item" onclick="switchTab('scan-screen', this)">🩺<span>Scan</span></div>
-        <div class="nav-item" onclick="switchTab('bemagical-screen', this)">🏰<span>Magic</span></div>
-        <div class="nav-item" onclick="switchTab('mood-screen', this)">🔋<span>Mood</span></div>
-        <div class="nav-item" onclick="switchTab('journal-screen', this)">☁️<span>Journal</span></div>
+        <div class="nav-item active" onclick="switchTab('home-screen', this)">
+            <span class="nav-icon">🤍</span><span class="nav-label">Home</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('taskgo-screen', this)">
+            <span class="nav-icon">🩹</span><span class="nav-label">Task</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('scan-screen', this)">
+            <span class="nav-icon">🩺</span><span class="nav-label">Scan</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('bemagical-screen', this)">
+            <span class="nav-icon">🏰</span><span class="nav-label">Magic</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('mood-screen', this)">
+            <span class="nav-icon">🔋</span><span class="nav-label">Mood</span>
+        </div>
+        <div class="nav-item" onclick="switchTab('journal-screen', this)">
+            <span class="nav-icon">☁️</span><span class="nav-label">Journal</span>
+        </div>
     </nav>
 
-</div> <script>
-    // ==========================================
-    // 🔑 GEMINI API KEY MANAGEMENT
-    // ==========================================
-    const LOCAL_STORAGE_KEY = 'anchor_gemini_api_key';
-    
-    const openGlobalSettings = () => {
-        const savedKey = localStorage.getItem(LOCAL_STORAGE_KEY) || "";
-        document.getElementById('api-key-input').value = savedKey;
-        document.getElementById('global-settings-modal').classList.remove('hidden');
-        document.getElementById('global-settings-modal').style.display = 'flex';
-    };
+</div><!-- /.app-container -->
 
+<script>
+    const LOCAL_STORAGE_KEY = 'anchor_gemini_api_key';
+
+    const openGlobalSettings = () => {
+        document.getElementById('api-key-input').value = localStorage.getItem(LOCAL_STORAGE_KEY) || "";
+        const m = document.getElementById('global-settings-modal');
+        m.classList.remove('hidden'); m.style.display = 'flex';
+    };
     const closeGlobalSettings = (save) => {
         if(save) {
-            const inputKey = document.getElementById('api-key-input').value.trim();
-            localStorage.setItem(LOCAL_STORAGE_KEY, inputKey);
+            localStorage.setItem(LOCAL_STORAGE_KEY, document.getElementById('api-key-input').value.trim());
             alert("APIキーをブラウザに保存しました。");
         }
         document.getElementById('global-settings-modal').classList.add('hidden');
@@ -412,121 +448,90 @@
             alert("ホーム画面右上の設定アイコン（≡）からGemini APIキーを登録してください。");
             return "※APIキーが設定されていません。";
         }
-        
-        // v1 エンドポイントへ直接通信
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
-
-        
         try {
             const response = await fetch(url, {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
             });
-            
             if (!response.ok) {
-                const errData = await response.json().catch(() => ({}));
-                console.error("HTTP Error:", response.status, errData);
-                return `【通信エラー (${response.status})】\nAPIキーが間違っているか、Google CloudでAPIが有効化されていません。`;
+                const e = await response.json().catch(()=>({}));
+                return `【通信エラー (${response.status})】\n${e?.error?.message || 'APIキーまたはAPI有効化を確認してください。'}`;
             }
-
             const data = await response.json();
-            
-            if (data.error) {
-                console.error("API Error Response:", data.error);
-                return `【APIエラー】\n${data.error.message}\n(Code: ${data.error.code})`;
-            }
-
+            if (data.error) return `【APIエラー】\n${data.error.message}`;
             return data.candidates[0].content.parts[0].text;
-            
         } catch (error) {
-            console.error("Fetch/Network Error:", error);
-            return `【ネットワークエラー】\n通信がブロックされました。\n※iPhoneのファイルアプリ等から開いている場合、iOSのセキュリティ制限(CORS)によりAPI通信が遮断されます。このツールはサーバーにデプロイして使用してください。`;
+            return `【ネットワークエラー】\nサーバーにデプロイして使用してください。`;
         }
     }
 
-    // --- Clock ---
+    // Clock
     const updateClock = () => {
-        const d = new Date();
-        const days = ["日", "月", "火", "水", "木", "金", "土"];
+        const d = new Date(), days = ["日","月","火","水","木","金","土"];
         document.getElementById('live-date').innerText = `${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日(${days[d.getDay()]})`;
         document.getElementById('live-time').innerText = `${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}:${String(d.getSeconds()).padStart(2,'0')}`;
     };
     setInterval(updateClock, 1000); updateClock();
 
-    // --- Navigation ---
+    // Navigation
     const switchTab = (id, el) => {
         document.querySelectorAll('.screen').forEach(s => s.classList.toggle('hidden', s.id !== id));
         document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
         el.classList.add('active');
         if(id !== 'journal-screen') resetJournal();
         if(id === 'bemagical-screen') calcCountdown();
-        
-        const activeScreen = document.getElementById(id);
-        if(activeScreen) activeScreen.scrollTo(0,0);
+        const s = document.getElementById(id); if(s) s.scrollTo(0,0);
     };
 
-    // --- Baymax Auto Quote (10秒ごと) ---
+    // Baymax
     const changeHomeQuote = () => {
-        const msgEl = document.getElementById('baymax-msg');
-        msgEl.style.opacity = 0;
+        const el = document.getElementById('baymax-msg');
+        el.style.opacity = 0;
         setTimeout(() => {
-            const qs = [
-                "こんにちは。私はベイマックス。\nあなたの健康を守ります。",
-                "深呼吸を提案します。",
-                "泣いてもいいんですよ。",
-                "（⚫︎ー⚫︎）b バララララララ",
-                "痛みのレベルは\nどれくらいですか？",
-                "私はいつでもここにいます。"
-            ];
-            msgEl.innerText = qs[Math.floor(Math.random()*qs.length)];
-            msgEl.style.opacity = 1;
+            const qs = ["こんにちは。私はベイマックス。\nあなたの健康を守ります。","深呼吸を提案します。","泣いてもいいんですよ。","（⚫︎ー⚫︎）b バララララララ","痛みのレベルは\nどれくらいですか？","私はいつでもここにいます。"];
+            el.innerText = qs[Math.floor(Math.random()*qs.length)];
+            el.style.opacity = 1;
         }, 500);
     };
     setInterval(changeHomeQuote, 10000);
 
-    const toggleSOS = (show) => document.getElementById('sos-overlay').classList.toggle('hidden', !show);
+    const toggleSOS = (show) => {
+        const ov = document.getElementById('sos-overlay');
+        ov.classList.toggle('hidden', !show);
+        ov.style.display = show ? 'flex' : '';
+    };
 
-    // --- Task Go (AI Integration) ---
-    const tIn = document.getElementById('task-input'), tList = document.getElementById('task-list'), tBtn = document.getElementById('analyze-btn');
+    // Task Go
+    const tIn = document.getElementById('task-input');
+    const tList = document.getElementById('task-list');
+    const tBtn = document.getElementById('analyze-btn');
     const addTask = () => {
         if(!tIn.value.trim()) return;
-        tList.insertAdjacentHTML('beforeend', `<li class="ts-item"><span>${tIn.value}</span><button style="border:none;background:none;color:red;font-size:1.2rem;cursor:pointer;" onclick="this.parentElement.remove(); tBtn.disabled=(tList.children.length===0)">×</button></li>`);
+        tList.insertAdjacentHTML('beforeend', `<li class="ts-item"><span>${tIn.value}</span><button style="border:none;background:none;color:red;font-size:1.2rem;cursor:pointer;" onclick="this.parentElement.remove();tBtn.disabled=(tList.children.length===0)">×</button></li>`);
         tIn.value = ''; tBtn.disabled = false;
     };
-    
     const analyzeTasks = async () => {
         const area = document.getElementById('suggestion-area'), steps = document.getElementById('suggestion-steps');
         const tasks = Array.from(tList.children).map(li => li.querySelector('span').innerText).join(', ');
-        
         tBtn.disabled = true;
         area.classList.remove('hidden');
         steps.innerHTML = '<div class="loading-text" style="text-align:center;">ウッディが作戦を考え中...</div>';
-
-        const prompt = `あなたは映画『トイ・ストーリー』のウッディです。医療現場でマネージャーとして働くユーザーが、以下のタスクを抱えています。
-        これらのタスクを「アイゼンハワーのマトリクス（重要度・緊急度）」に基づいて判断し、「実施した方がいい順番」と「実施時のアドバイス」を出力してください。
-        【条件】
-        ・ウッディの口調（「あんたは俺の相棒だぜ！」「さあ、行くぞ！」など）で親しみやすく。
-        ・前頭前野の疲労を防ぐため、「まずはこれならすぐ終わるという第一歩（15分以内）」を強調すること。
-        ・比喩は多用せず、回りくどい表現を避けて端的に伝えること。
-        【タスク一覧】: ${tasks}`;
-
-        const result = await callGeminiAPI(prompt);
+        const result = await callGeminiAPI(`あなたは映画『トイ・ストーリー』のウッディです。医療現場でマネージャーとして働くユーザーが以下のタスクを抱えています。アイゼンハワーのマトリクスに基づき、実施すべき順番とアドバイスを出力してください。【条件】ウッディの口調で。15分以内で終わる第一歩を強調。端的に。【タスク】: ${tasks}`);
         steps.innerHTML = result;
         tBtn.disabled = false;
     };
-
     const copyTasks = () => {
-        const text = document.getElementById('suggestion-steps').innerText;
-        navigator.clipboard.writeText(`【Task Go 分析結果】\n${text}`).then(() => {
-            const cBtn = document.getElementById('copy-btn'); const orig = cBtn.innerText;
-            cBtn.innerText = '✅ コピー完了！'; cBtn.style.background = 'var(--ts-green)';
-            setTimeout(() => { cBtn.innerText = orig; cBtn.style.background = 'var(--ts-blue)'; }, 2000);
+        navigator.clipboard.writeText(`【Task Go 分析結果】\n${document.getElementById('suggestion-steps').innerText}`).then(() => {
+            const b = document.getElementById('copy-btn'), o = b.innerText;
+            b.innerText = '✅ コピー完了！'; b.style.background = 'var(--ts-green)';
+            setTimeout(() => { b.innerText = o; b.style.background = 'var(--ts-blue)'; }, 2000);
         });
     };
-    const resetTaskGo = () => { tList.innerHTML = ''; tBtn.disabled = true; document.getElementById('suggestion-area').classList.add('hidden'); };
+    const resetTaskGo = () => { tList.innerHTML=''; tBtn.disabled=true; document.getElementById('suggestion-area').classList.add('hidden'); };
 
-    // --- Be Magical ---
+    // Be Magical
     let fireworksDuration = 3;
     let myRoutines = [
         { text: "リーンゲインズ(16h)", checked: false },
@@ -534,174 +539,102 @@
         { text: "就寝前デジタルリセット", checked: false },
         { text: "水分摂取(2L)", checked: false }
     ];
-
     const renderRoutines = () => {
-        const container = document.getElementById('routine-container');
-        container.innerHTML = myRoutines.map((r, i) => `
-            <div class="routine-item ${r.checked ? 'checked' : ''}" onclick="toggleRoutine(${i})">${r.text}</div>
-        `).join('');
-        renderSettingsRoutines();
+        document.getElementById('routine-container').innerHTML = myRoutines.map((r,i) => `<div class="routine-item ${r.checked?'checked':''}" onclick="toggleRoutine(${i})">${r.text}</div>`).join('');
+        document.getElementById('settings-routine-list').innerHTML = myRoutines.map((r,i) => `<div style="display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,0.1);padding:8px 12px;border-radius:8px;margin-bottom:5px;"><span style="font-size:0.9rem;color:#fff;">${r.text}</span><button style="background:none;border:none;color:#ff3366;cursor:pointer;font-size:1.2rem;" onclick="deleteRoutine(${i})">×</button></div>`).join('');
     };
-
-    const renderSettingsRoutines = () => {
-        const container = document.getElementById('settings-routine-list');
-        container.innerHTML = myRoutines.map((r, i) => `
-            <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(255,255,255,0.1); padding:8px 12px; border-radius:8px; margin-bottom:5px;">
-                <span style="font-size:0.9rem; color:#fff;">${r.text}</span>
-                <button style="background:none; border:none; color:var(--ml-red); cursor:pointer; font-weight:bold; font-size:1.2rem;" onclick="deleteRoutine(${i})">×</button>
-            </div>
-        `).join('');
-    };
-
     const calcCountdown = () => {
-        const targetStr = document.getElementById('setting-date').value;
-        if(!targetStr) return;
-        const targetDate = new Date(targetStr);
-        const today = new Date(); today.setHours(0,0,0,0);
-        const diff = Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
+        const s = document.getElementById('setting-date').value; if(!s) return;
+        const diff = Math.ceil((new Date(s) - Object.assign(new Date(), {hours:0,minutes:0,seconds:0,milliseconds:0})) / 86400000);
         document.getElementById('countdown-val').innerText = diff > 0 ? `${diff} Days` : "0 Days";
     };
-
-    const openMagicSettings = () => { document.getElementById('magic-settings-modal').classList.remove('hidden'); document.getElementById('magic-settings-modal').style.display = 'flex'; };
+    const openMagicSettings = () => { const m=document.getElementById('magic-settings-modal'); m.classList.remove('hidden'); m.style.display='flex'; };
     const closeMagicSettings = (save) => {
-        if(save) {
-            calcCountdown();
-            fireworksDuration = parseInt(document.getElementById('setting-fw-time').value) || 3;
-        } else { renderRoutines(); }
+        if(save) { calcCountdown(); fireworksDuration = parseInt(document.getElementById('setting-fw-time').value)||3; }
+        else { renderRoutines(); }
         document.getElementById('magic-settings-modal').classList.add('hidden');
     };
     const addRoutine = () => {
-        const input = document.getElementById('new-routine-input');
-        if(input.value.trim()) { myRoutines.push({ text: input.value.trim(), checked: false }); input.value = ''; renderRoutines(); }
+        const inp = document.getElementById('new-routine-input');
+        if(inp.value.trim()) { myRoutines.push({text:inp.value.trim(),checked:false}); inp.value=''; renderRoutines(); }
     };
-    const deleteRoutine = (index) => { myRoutines.splice(index, 1); renderRoutines(); };
-    const toggleRoutine = (index) => {
-        myRoutines[index].checked = !myRoutines[index].checked;
-        renderRoutines();
-        const allChecked = myRoutines.length > 0 && myRoutines.every(r => r.checked);
-        if(allChecked) {
+    const deleteRoutine = (i) => { myRoutines.splice(i,1); renderRoutines(); };
+    const toggleRoutine = (i) => {
+        myRoutines[i].checked = !myRoutines[i].checked; renderRoutines();
+        if(myRoutines.length>0 && myRoutines.every(r=>r.checked)) {
             const fw = document.getElementById('fireworks-container');
             fw.classList.remove('hidden');
-            setTimeout(() => { fw.classList.add('hidden'); }, fireworksDuration * 1000);
+            setTimeout(()=>fw.classList.add('hidden'), fireworksDuration*1000);
         }
     };
     renderRoutines();
 
-    // --- Journal ---
-    let jTimer; let journalCount = 0;
+    // Journal
+    let jTimer, journalCount = 0;
     const startJournal = (m, btn) => {
-        document.querySelectorAll('.cc-time-btn').forEach(b => b.classList.remove('active')); btn.classList.add('active');
-        const input = document.getElementById('journal-input'), msg = document.getElementById('j-msg');
-        input.disabled = false; input.value = ''; input.classList.remove('fog-fade'); msg.classList.add('hidden'); input.focus();
-        let tl = m * 60; clearInterval(jTimer);
-        jTimer = setInterval(() => {
-            tl--; 
+        document.querySelectorAll('.cc-time-btn').forEach(b=>b.classList.remove('active')); btn.classList.add('active');
+        const inp = document.getElementById('journal-input'), msg = document.getElementById('j-msg');
+        inp.disabled=false; inp.value=''; inp.classList.remove('fog-fade'); msg.classList.add('hidden'); inp.focus();
+        let tl = m*60; clearInterval(jTimer);
+        jTimer = setInterval(()=>{
+            tl--;
             document.getElementById('j-timer').innerText = `${String(Math.floor(tl/60)).padStart(2,'0')}:${String(tl%60).padStart(2,'0')}`;
-            if(tl<=0) { 
-                clearInterval(jTimer); input.disabled=true; input.classList.add('fog-fade'); 
-                journalCount++; document.getElementById('journal-counter-display').innerText = `これまでに海に流した思考: ${journalCount}回`;
-                setTimeout(()=>msg.classList.remove('hidden'), 4000); 
+            if(tl<=0){
+                clearInterval(jTimer); inp.disabled=true; inp.classList.add('fog-fade');
+                journalCount++; document.getElementById('journal-counter-display').innerText=`これまでに海に流した思考: ${journalCount}回`;
+                setTimeout(()=>msg.classList.remove('hidden'),4000);
             }
-        }, 1000);
+        },1000);
     };
     const resetJournal = () => { clearInterval(jTimer); document.getElementById('journal-input').value=''; document.getElementById('j-timer').innerText='00:00'; };
 
-    // --- Scan (AI Integration) ---
+    // Scan
     const runScan = () => {
         const text = document.getElementById('scan-input').value; if(!text) return;
-        const ov = document.getElementById('breathe-overlay'), c = document.getElementById('b-circle'), btn = document.getElementById('scan-execute-btn');
-        btn.disabled = true;
-        ov.classList.remove('hidden'); ov.style.display = 'flex'; c.innerText = "吸って...";
-        setTimeout(()=> { c.style.transform = 'scale(1.8)'; }, 100);
-        setTimeout(()=> { c.innerText = "吐いて..."; c.style.transform = 'scale(1)'; }, 4000);
-        setTimeout(async ()=> {
+        const ov=document.getElementById('breathe-overlay'), c=document.getElementById('b-circle'), btn=document.getElementById('scan-execute-btn');
+        btn.disabled=true; ov.classList.remove('hidden'); ov.style.display='flex'; c.innerText="吸って...";
+        setTimeout(()=>{c.style.transform='scale(1.8)'},100);
+        setTimeout(()=>{c.innerText="吐いて..."; c.style.transform='scale(1)'},4000);
+        setTimeout(async()=>{
             ov.classList.add('hidden');
             document.getElementById('scan-res').classList.remove('hidden');
-            document.getElementById('scan-res-text').innerHTML = '<div class="loading-text" style="text-align:center;">スキャン中...</div>';
-            
-            const prompt = `あなたはケア・ロボットのベイマックスです。医療マネージャーとして忙しく働くユーザーが、以下の状況や感情を入力しました。
-            これに対して、適切なリラックス法を提示してください。
-            【条件】
-            ・医療ロボットとしての視点と優しさを持ち、ディズニーの世界観（ディズニーリゾートやキャラクター、またはサウナでのリラックスなど）を少しだけ交えること。
-            ・前頭前野を休ませるようなアドバイスをすること。
-            ・比喩は多用せず、読み手に寄り添いながらも端的な表現にすること。回りくどい表現は厳禁。
-            【入力】: ${text}`;
-            
-            const result = await callGeminiAPI(prompt);
-            
-            if(result.includes("【")) { document.getElementById('scan-res-text').style.color = "#ff5252"; } 
-            else { document.getElementById('scan-res-text').style.color = "var(--sc-turq-light)"; }
-            
-            document.getElementById('scan-res-text').innerText = result;
-            btn.disabled = false;
-        }, 8000);
+            document.getElementById('scan-res-text').innerHTML='<div class="loading-text" style="text-align:center;">スキャン中...</div>';
+            const result = await callGeminiAPI(`あなたはケア・ロボットのベイマックスです。医療マネージャーのユーザーが以下の状況・感情を入力しました。適切なリラックス法を提示してください。【条件】医療ロボットの優しさで。ディズニーの世界観を少し交えること。前頭前野を休ませるアドバイス。端的に。【入力】: ${text}`);
+            const el = document.getElementById('scan-res-text');
+            el.style.color = result.includes("【") ? "#ff5252" : "var(--sc-turq-light)";
+            el.innerText = result;
+            btn.disabled=false;
+        },8000);
     };
 
-    // --- Mood Log (AI Integration) ---
+    // Mood Log
     let moodLogs = [];
-    const mlArea = document.getElementById('ml-scale-area');
     const faces = ["😊","🙂","😐","😑","😕","😟","😣","😖","😫","😭"];
-    for(let i=1; i<=10; i++){
-        mlArea.insertAdjacentHTML('beforeend', `<div class="ml-box" onclick="selectMood(this)"><div class="face">${faces[i-1]}</div><div>${i}</div></div>`);
+    for(let i=1;i<=10;i++){
+        document.getElementById('ml-scale-area').insertAdjacentHTML('beforeend',`<div class="ml-box" onclick="selectMood(this)"><div class="face">${faces[i-1]}</div><div>${i}</div></div>`);
     }
     const selectMood = (el) => { document.querySelectorAll('.ml-box').forEach(b=>b.classList.remove('active')); el.classList.add('active'); };
-    
-    const saveMood = async () => { 
-        const activeBox = document.querySelector('.ml-box.active');
-        if(!activeBox) return alert("10段階で気分を選択してください。");
-        
-        const btn = document.getElementById('mood-execute-btn');
-        btn.disabled = true;
-        btn.innerText = "AIが分析中...";
-
-        const score = activeBox.querySelector('div:last-child').innerText;
-        const tags = Array.from(document.querySelectorAll('.ml-tag.active')).map(t => t.innerText);
-        
-        const d = new Date();
-        const dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
-        moodLogs.unshift({ date: dateStr, score, tags });
-        renderMoodLogs();
-
-        const prompt = `あなたはケア・ロボットのベイマックスです。多忙な医療マネージャーのユーザーが、今の気分を記録しました。
-        【心の痛み（10段階）】: ${score}
-        【選んだタグ】: ${tags.length > 0 ? tags.join(', ') : 'なし'}
-        この状態に対する適切な対処法や労いの言葉を教えてください。
-        【条件】
-        ・ベイマックスの口調で。
-        ・端的に、読み手に寄り添う表現で。回りくどい言い回しは避けること。`;
-
-        const aiMessage = await callGeminiAPI(prompt);
-
-        document.getElementById('mood-popup-msg').innerText = aiMessage;
-        
-        if(aiMessage.includes("【")) { document.getElementById('mood-popup-msg').style.color = "#ff5252"; } 
-        else { document.getElementById('mood-popup-msg').style.color = "#555"; }
-
-        document.getElementById('mood-popup').classList.remove('hidden');
-        document.getElementById('mood-popup').style.display = 'flex';
-
-        document.querySelectorAll('.ml-box, .ml-tag').forEach(el => el.classList.remove('active'));
-        btn.innerText = "SAVE LOG";
-        btn.disabled = false;
+    const saveMood = async () => {
+        const box = document.querySelector('.ml-box.active');
+        if(!box) return alert("10段階で気分を選択してください。");
+        const btn=document.getElementById('mood-execute-btn');
+        btn.disabled=true; btn.innerText="AIが分析中...";
+        const score = box.querySelector('div:last-child').innerText;
+        const tags = Array.from(document.querySelectorAll('.ml-tag.active')).map(t=>t.innerText);
+        const d=new Date(), dateStr=`${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        moodLogs.unshift({date:dateStr,score,tags}); renderMoodLogs();
+        const result = await callGeminiAPI(`あなたはケア・ロボットのベイマックスです。多忙な医療マネージャーが気分を記録しました。【心の痛み】: ${score} 【タグ】: ${tags.join(',')||'なし'} 適切な対処法と労いの言葉を。【条件】ベイマックスの口調。端的に。寄り添う表現で。`);
+        const msg=document.getElementById('mood-popup-msg');
+        msg.innerText=result; msg.style.color=result.includes("【")?"#ff5252":"#555";
+        const popup=document.getElementById('mood-popup');
+        popup.classList.remove('hidden'); popup.style.display='flex';
+        document.querySelectorAll('.ml-box,.ml-tag').forEach(el=>el.classList.remove('active'));
+        btn.innerText="SAVE LOG"; btn.disabled=false;
     };
-
     const renderMoodLogs = () => {
-        const container = document.getElementById('mood-log-list');
-        if(moodLogs.length === 0) return;
-        
-        container.innerHTML = moodLogs.map(log => `
-            <div style="background:#fff; border:1px solid #ddd; padding:12px; border-radius:12px; margin-bottom:8px;">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <span style="font-weight:bold; color:var(--ml-red);">Score: ${log.score}</span>
-                    <span style="font-size:0.8rem; color:#888;">${log.date}</span>
-                </div>
-                <div style="margin-top:5px; font-size:0.85rem; color:#555;">
-                    ${log.tags.length > 0 ? log.tags.map(t => `<span style="background:rgba(33,150,243,0.1); color:var(--ml-blue); padding:2px 6px; border-radius:10px; margin-right:5px; display:inline-block; margin-bottom:4px;">${t}</span>`).join('') : 'タグなし'}
-                </div>
-            </div>
-        `).join('');
+        const c=document.getElementById('mood-log-list'); if(moodLogs.length===0) return;
+        c.innerHTML=moodLogs.map(l=>`<div style="background:#fff;border:1px solid #ddd;padding:12px;border-radius:12px;margin-bottom:8px;"><div style="display:flex;justify-content:space-between;"><span style="font-weight:bold;color:var(--ml-red);">Score: ${l.score}</span><span style="font-size:0.8rem;color:#888;">${l.date}</span></div><div style="margin-top:5px;font-size:0.85rem;">${l.tags.length>0?l.tags.map(t=>`<span style="background:rgba(33,150,243,0.1);color:var(--ml-blue);padding:2px 6px;border-radius:10px;margin-right:5px;display:inline-block;">${t}</span>`).join(''):'タグなし'}</div></div>`).join('');
     };
-
 </script>
 </body>
 </html>
