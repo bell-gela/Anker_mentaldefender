@@ -2,7 +2,10 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" content="#f0f4f7">
     <title>Anchor - Mental Anchor Tool</title>
     <style>
         :root {
@@ -15,20 +18,25 @@
             --text-main: #2c3e50; --glass: rgba(255, 255, 255, 0.7);
         }
 
-        body, html { margin: 0; padding: 0; height: 100%; font-family: 'Avenir Next', sans-serif; color: var(--text-main); overflow: hidden; background: #1a1a1a; }
-        .app-container { width: 100%; max-width: 600px; height: 100%; margin: 0 auto; position: relative; background: var(--tm-bg); overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        /* 100dvh を使用してスマホのUIバーを考慮した全画面表示に */
+        body, html { margin: 0; padding: 0; height: 100%; height: 100dvh; font-family: 'Avenir Next', sans-serif; color: var(--text-main); overflow: hidden; background: #1a1a1a; }
+        .app-container { width: 100%; max-width: 600px; height: 100%; height: 100dvh; margin: 0 auto; position: relative; background: var(--tm-bg); overflow: hidden; box-shadow: 0 0 50px rgba(0,0,0,0.8); }
+        
         .hidden { display: none !important; }
         .flex-center { display: flex; justify-content: center; align-items: center; }
         .base-btn { border: none; border-radius: 15px; font-weight: bold; cursor: pointer; transition: 0.2s; }
         .base-btn:active { transform: scale(0.95); }
         .base-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; overflow-y: auto; z-index: 1; padding-bottom: 90px; box-sizing: border-box; }
+        /* ボトムナビとセーフエリアを考慮したpadding */
+        .screen { position: absolute; top: 0; left: 0; width: 100%; height: 100%; display: flex; flex-direction: column; align-items: center; overflow-y: auto; z-index: 1; padding-bottom: calc(90px + env(safe-area-inset-bottom)); box-sizing: border-box; }
         .content-width { width: 90%; max-width: 500px; margin-top: 25px; }
-        .header { width: 100%; padding: 15px 0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
+        
+        /* ヘッダーのセーフエリア考慮 */
+        .header { width: 100%; padding: calc(15px + env(safe-area-inset-top)) 0 15px 0; display: flex; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 10; background: rgba(255,255,255,0.1); backdrop-filter: blur(5px); }
         .screen-title { font-size: 1.3rem; font-weight: 900; margin-left: 20px; flex-grow: 1; letter-spacing: 1px; }
 
-        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: 65px; background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 50; }
+        .bottom-nav { position: absolute; bottom: 0; width: 100%; height: calc(65px + env(safe-area-inset-bottom)); padding-bottom: env(safe-area-inset-bottom); background: rgba(255,255,255,0.95); backdrop-filter: blur(10px); display: flex; justify-content: space-around; align-items: center; border-top: 1px solid #ddd; z-index: 50; }
         .nav-item { text-align: center; font-size: 1.3rem; cursor: pointer; color: #888; transition: 0.2s; flex: 1; }
         .nav-item span { display: block; font-size: 0.65rem; font-weight: bold; margin-top: 3px; }
         .nav-item.active { color: var(--tm-cyan); }
@@ -43,15 +51,15 @@
         .clock-container { text-align: center; margin-bottom: 20px; }
         .live-date { font-size: 1rem; color: #666; font-weight: 600; letter-spacing: 1px; }
         .live-time { font-size: 2.5rem; font-weight: 300; letter-spacing: 4px; color: var(--text-main); margin-top: 5px; }
-        #baymax-msg { padding: 15px 25px; margin-top: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.5); width: 80%; margin-left: auto; margin-right: auto; min-height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.5; }
+        #baymax-msg { padding: 15px 25px; margin-top: 20px; font-size: 0.9rem; border: 1px solid rgba(255,255,255,0.5); width: 80%; margin-left: auto; margin-right: auto; min-height: 40px; display: flex; align-items: center; justify-content: center; text-align: center; line-height: 1.5; transition: opacity 0.5s ease; }
         .emergency-btn { margin-top: 40px; padding: 15px 40px; border-radius: 30px; background: var(--tm-silver); color: var(--tm-cyan); font-size: 1.1rem; border: 2px solid var(--tm-cyan); box-shadow: 0 5px 20px rgba(0,229,255,0.3); letter-spacing: 2px; }
         
         /* Hamburger Menu Icon */
-        .hamburger-icon { position: absolute; top: 20px; right: 20px; width: 30px; height: 20px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 20; padding: 5px; }
+        .hamburger-icon { position: absolute; top: calc(20px + env(safe-area-inset-top)); right: 20px; width: 30px; height: 20px; display: flex; flex-direction: column; justify-content: space-between; cursor: pointer; z-index: 20; padding: 5px; }
         .hamburger-icon span { display: block; width: 100%; height: 3px; background-color: var(--text-main); border-radius: 2px; }
 
         /* Global Settings Modal */
-        #global-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:150; flex-direction:column; padding-top: 60px; }
+        #global-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:150; flex-direction:column; padding-top: calc(60px + env(safe-area-inset-top)); }
         .global-setting-card { background: #fff; border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 
         /* --- TASK GO --- */
@@ -66,7 +74,7 @@
         #bemagical-screen { background: linear-gradient(180deg, #020024 0%, var(--fm-night) 60%, #000 100%); color: #e0e0e0; position: relative; }
         #bemagical-screen .screen-title { color: transparent; background: linear-gradient(45deg, var(--fm-gold), #fff, var(--fm-gold)); -webkit-background-clip: text; text-shadow: 0 0 15px var(--fm-gold); }
         .setting-icon { font-size: 1.5rem; cursor: pointer; margin-right: 20px; position: relative; }
-        #magic-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; flex-direction:column; padding-top: 40px; }
+        #magic-settings-modal { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:100; flex-direction:column; padding-top: calc(40px + env(safe-area-inset-top)); }
         .magic-setting-card { background: var(--fm-night); border: 2px solid var(--fm-gold); border-radius: 20px; padding: 25px; width: 85%; max-width: 400px; color: #fff; box-shadow: 0 0 30px rgba(255,215,0,0.2); }
         .setting-input { width: 100%; padding: 12px; border-radius: 10px; border: 1px solid var(--fm-blue); background: rgba(255,255,255,0.1); color: #fff; box-sizing: border-box; font-size: 1rem; margin-top: 8px; }
         .fm-card { background: rgba(10,10,40,0.7); border: 1px solid rgba(255,215,0,0.3); border-radius: 15px; padding: 18px; margin-bottom: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); }
@@ -108,7 +116,7 @@
         .ml-tag { padding: 8px 14px; border-radius: 20px; border: 1px solid #ddd; font-size: 0.85rem; background: #fff; cursor: pointer; color: #555; }
         .ml-tag.active { background: var(--ml-blue); color: #fff; border-color: var(--ml-blue); }
         
-        #mood-popup { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; flex-direction:column; }
+        #mood-popup { position: absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:100; flex-direction:column; padding-top: calc(20px + env(safe-area-inset-top)); }
         .mood-popup-card { background: #fff; border-radius: 20px; padding: 30px; width: 80%; max-width: 350px; text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.3); }
 
         /* --- SOS OVERLAY --- */
@@ -130,7 +138,7 @@
             <span></span>
         </div>
         
-        <div class="clock-container" style="margin-top: 60px;">
+        <div class="clock-container" style="margin-top: calc(60px + env(safe-area-inset-top));">
             <div id="live-date" class="live-date">--年--月--日(--)</div>
             <div id="live-time" class="live-time">00:00:00</div>
         </div>
@@ -318,7 +326,7 @@
     </div>
 
     <div id="sos-overlay" class="screen flex-center hidden" onclick="toggleSOS(false)">
-        <div class="ticker-wrapper" style="top:60px;">
+        <div class="ticker-wrapper" style="top:calc(60px + env(safe-area-inset-top));">
             <div class="ticker-text">
                 WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
                 WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
@@ -326,7 +334,7 @@
         </div>
         <div style="font-size:60px;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
         <div style="text-align:center; color:#546e7a; margin-top:20px; line-height:1.8; font-weight: bold;">大丈夫ですよ。<br>ゆっくりと深呼吸をしましょう。</div>
-        <div class="ticker-wrapper" style="bottom:60px;">
+        <div class="ticker-wrapper" style="bottom:calc(60px + env(safe-area-inset-bottom));">
             <div class="ticker-text">
                 Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
                 Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
@@ -367,7 +375,6 @@
         document.getElementById('global-settings-modal').classList.add('hidden');
     };
 
-    // APIを呼び出す共通関数（修正版）
     async function callGeminiAPI(promptText) {
         const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!apiKey) {
@@ -375,7 +382,7 @@
             return "※APIキーが設定されていません。";
         }
         
-        // 修正：安定稼働している gemini-1.5-flash モデルを指定
+        // 安定稼働の gemini-1.5-flash モデルを指定
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
         
         try {
@@ -386,10 +393,9 @@
             });
             const data = await response.json();
             
-            // API側からエラーが返ってきた場合の詳細表示
             if (data.error) {
                 console.error("API Error Response:", data.error);
-                alert(`APIエラーが発生しました: ${data.error.message}\n（ステータスコード: ${data.error.code}）`);
+                alert(`APIエラーが発生しました: ${data.error.message}\n（コード: ${data.error.code}）`);
                 return "エラーが発生したため、分析を中断しました。設定を確認してください。";
             }
             return data.candidates[0].content.parts[0].text;
@@ -420,15 +426,28 @@
         window.scrollTo(0,0);
     };
 
+    // --- Baymax Auto Quote (10秒ごと) ---
     const changeHomeQuote = () => {
-        const qs = [
-            "こんにちは。私はベイマックス。\nあなたの健康を守ります。",
-            "深呼吸を提案します。",
-            "泣いてもいいんですよ。",
-            "（⚫︎ー⚫︎）b バララララララ"
-        ];
-        document.getElementById('baymax-msg').innerText = qs[Math.floor(Math.random()*qs.length)];
+        const msgEl = document.getElementById('baymax-msg');
+        // フェードアウト効果
+        msgEl.style.opacity = 0;
+        setTimeout(() => {
+            const qs = [
+                "こんにちは。私はベイマックス。\nあなたの健康を守ります。",
+                "深呼吸を提案します。",
+                "泣いてもいいんですよ。",
+                "（⚫︎ー⚫︎）b バララララララ",
+                "痛みのレベルは\nどれくらいですか？",
+                "私はいつでもここにいます。"
+            ];
+            msgEl.innerText = qs[Math.floor(Math.random()*qs.length)];
+            // フェードイン効果
+            msgEl.style.opacity = 1;
+        }, 500);
     };
+    // 初回と10秒ごとの自動実行
+    setInterval(changeHomeQuote, 10000);
+
     const toggleSOS = (show) => document.getElementById('sos-overlay').classList.toggle('hidden', !show);
 
     // --- Task Go (AI Integration) ---
