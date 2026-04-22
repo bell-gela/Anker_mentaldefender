@@ -6,7 +6,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#f0f4f7">
-    <title>Anchor - Mental Anchor</title>
+    <title>Anchor - Mental Anchor Tool</title>
     <style>
         :root {
             --tm-bg: #f0f4f7; --tm-cyan: #00e5ff; --tm-silver: linear-gradient(145deg, #e6e9ef, #ffffff);
@@ -18,18 +18,17 @@
             --text-main: #2c3e50; --glass: rgba(255, 255, 255, 0.7);
         }
 
-        /* 画面全体の余白を消し、iOS特有のバウンススクロール時の黒背景を白系に変更 */
         html, body { 
-            margin: 0; padding: 0; width: 100%; height: 100%; 
-            min-height: -webkit-fill-available; /* iOS Safariハック */
+            margin: 0; padding: 0; width: 100%; height: 100%; height: 100dvh;
             font-family: 'Avenir Next', sans-serif; color: var(--text-main); 
             overflow: hidden; background-color: var(--tm-bg); 
         }
         
         .app-container { 
-            width: 100%; max-width: 600px; height: 100%; min-height: 100vh; min-height: -webkit-fill-available;
+            width: 100%; max-width: 600px; height: 100%; height: 100dvh;
             margin: 0 auto; position: relative; background: var(--tm-bg); 
-            overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.1); 
+            overflow: hidden; box-shadow: 0 0 30px rgba(0,0,0,0.1);
+            display: flex; flex-direction: column; 
         }
         
         .hidden { display: none !important; }
@@ -38,17 +37,16 @@
         .base-btn:active { transform: scale(0.95); }
         .base-btn:disabled { opacity: 0.6; cursor: not-allowed; }
         
-        /* 画面のスクロール領域（ボトムナビの裏に隠れないようにpadding-bottomを設定） */
+        .screen-container { flex-grow: 1; position: relative; overflow: hidden; }
+
         .screen { 
-            position: absolute; top: 0; left: 0; right: 0; bottom: 0; 
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; 
             display: flex; flex-direction: column; align-items: center; 
             overflow-y: auto; -webkit-overflow-scrolling: touch; z-index: 1; 
-            padding-bottom: calc(85px + env(safe-area-inset-bottom)); 
-            box-sizing: border-box; 
+            padding-bottom: 40px; box-sizing: border-box;
         }
         .content-width { width: 90%; max-width: 500px; margin-top: 25px; }
         
-        /* ヘッダー（iPhoneのノッチ・Dynamic Islandを回避） */
         .header { 
             width: 100%; padding: calc(15px + env(safe-area-inset-top)) 0 15px 0; 
             display: flex; align-items: center; justify-content: space-between; 
@@ -57,10 +55,8 @@
         }
         .screen-title { font-size: 1.3rem; font-weight: 900; margin-left: 20px; flex-grow: 1; letter-spacing: 1px; }
 
-        /* ボトムナビゲーション（画面最下部に固定） */
         .bottom-nav { 
-            position: absolute; bottom: 0; left: 0; width: 100%; 
-            padding-bottom: env(safe-area-inset-bottom); 
+            flex-shrink: 0; width: 100%; padding-bottom: env(safe-area-inset-bottom); 
             height: calc(65px + env(safe-area-inset-bottom)); 
             background: rgba(255,255,255,0.95); backdrop-filter: blur(15px); -webkit-backdrop-filter: blur(15px);
             display: flex; justify-content: space-around; align-items: center; 
@@ -158,218 +154,219 @@
 
 <div class="app-container">
 
-    <div id="home-screen" class="screen">
-        <div class="hamburger-icon" onclick="openGlobalSettings()">
-            <span></span>
-            <span></span>
-            <span></span>
-        </div>
-        
-        <div class="clock-container" style="margin-top: calc(70px + env(safe-area-inset-top));">
-            <div id="live-date" class="live-date">--年--月--日(--)</div>
-            <div id="live-time" class="live-time">00:00:00</div>
-        </div>
-        
-        <div style="text-align: center;" onclick="changeHomeQuote()">
-            <div style="font-size: 55px; font-weight: bold;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
-            <div id="baymax-msg">こんにちは。私はベイマックス。<br>あなたの健康を守ります。</div>
-        </div>
-
-        <button class="flex-center base-btn emergency-btn" onclick="toggleSOS(true)">EMERGENCY SOS</button>
-    </div>
-
-    <div id="global-settings-modal" class="hidden flex-center">
-        <div class="global-setting-card">
-            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main);">⚙️ System Settings</div>
-            
-            <div style="margin-bottom: 15px;">
-                <span style="font-size: 0.9rem; color: #555; font-weight: bold;">Gemini API Key</span>
-                <input type="password" id="api-key-input" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #fafafa; color: #333; box-sizing: border-box; font-size: 1rem; margin-top: 8px;" placeholder="AIzaSy...">
-                <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">※APIキーはブラウザにのみ保存され、外部には送信されません。</div>
+    <div class="screen-container">
+        <div id="home-screen" class="screen">
+            <div class="hamburger-icon" onclick="openGlobalSettings()">
+                <span></span>
+                <span></span>
+                <span></span>
             </div>
             
-            <div style="display: flex; gap: 10px; margin-top: 30px;">
-                <button class="base-btn" style="flex:1; padding:12px; background:#ddd; color:#333;" onclick="closeGlobalSettings(false)">キャンセル</button>
-                <button class="base-btn" style="flex:1; padding:12px; background:var(--tm-cyan); color:#fff;" onclick="closeGlobalSettings(true)">保存</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="taskgo-screen" class="screen hidden">
-        <div class="header"><div class="screen-title">Task Go</div></div>
-        <div class="content-width" style="display:flex; gap:10px;">
-            <input type="text" id="task-input" class="ts-input" placeholder="やりたいことを入力..." onkeypress="if(event.key==='Enter')addTask()">
-            <button class="base-btn" style="padding:0 20px; background:var(--ts-green); color:#fff;" onclick="addTask()">Add</button>
-        </div>
-        <div class="content-width"><ul id="task-list" class="ts-list"></ul></div>
-        <div class="content-width">
-            <button id="analyze-btn" class="base-btn ts-analyze-btn" onclick="analyzeTasks()" disabled>Analyze</button>
-        </div>
-        <div id="suggestion-area" class="content-width hidden" style="background:#fff; border:4px solid var(--ts-green); border-radius:20px; padding:20px;">
-            <div style="color:var(--ts-green); font-weight:800; text-align:center; margin-bottom:15px;">🚀 AI OPTIMIZED ROUTE</div>
-            <div id="suggestion-steps" style="line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap;"></div>
-            
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button id="copy-btn" class="base-btn" style="flex: 2; padding:12px; background:var(--ts-blue); color:#fff;" onclick="copyTasks()">📋 結果をコピー</button>
-                <button class="base-btn" style="flex: 1; padding:12px; background:#ddd; color:#333;" onclick="resetTaskGo()">🔄 リセット</button>
-            </div>
-        </div>
-    </div>
-
-    <div id="bemagical-screen" class="screen hidden">
-        <div class="header" style="border-bottom: 1px solid rgba(0,191,255,0.2);">
-            <div class="screen-title">Be Magical!</div>
-            <span class="setting-icon" onclick="openMagicSettings()">⚙️</span>
-        </div>
-        
-        <div id="fireworks-container" class="hidden">
-            <div class="firework fw1"></div>
-            <div class="firework fw2"></div>
-            <div class="firework fw3"></div>
-        </div>
-
-        <div class="content-width fm-card" style="text-align: center; position: relative; z-index: 10;">
-            <div style="color:var(--fm-blue); font-size: 0.9rem;">✨ NEXT IN-PARK UNTIL...</div>
-            <div id="countdown-val" style="font-size: 3.5rem; font-weight: 900; color: var(--fm-gold); margin: 10px 0;">-- Days</div>
-        </div>
-        
-        <div class="content-width fm-card" style="position: relative; z-index: 10;">
-            <div style="color:var(--fm-blue); font-weight: bold; margin-bottom: 15px;">✨ DAILY CONDITIONING</div>
-            <div id="routine-container"></div>
-        </div>
-    </div>
-
-    <div id="magic-settings-modal" class="hidden flex-center">
-        <div class="magic-setting-card">
-            <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--fm-gold);">⚙️ Magic Settings</div>
-            
-            <div style="margin-bottom: 15px;">
-                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">インパーク予定日</span>
-                <input type="date" id="setting-date" class="setting-input" value="2026-06-12">
+            <div class="clock-container" style="margin-top: calc(60px + env(safe-area-inset-top));">
+                <div id="live-date" class="live-date">--年--月--日(--)</div>
+                <div id="live-time" class="live-time">00:00:00</div>
             </div>
             
-            <div style="margin-bottom: 20px;">
-                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">花火の演出時間 (秒)</span>
-                <input type="number" id="setting-fw-time" class="setting-input" min="1" max="10" value="3">
+            <div style="text-align: center;" onclick="changeHomeQuote()">
+                <div style="font-size: 55px; font-weight: bold;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
+                <div class="glass-panel" id="baymax-msg">こんにちは。私はベイマックス。<br>あなたの健康を守ります。</div>
             </div>
 
-            <div style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(0,191,255,0.3);">
-                <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold; display:block; margin-bottom:8px;">ルーティンの編集</span>
-                <div id="settings-routine-list" style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;"></div>
-                <div style="display: flex; gap: 10px;">
-                    <input type="text" id="new-routine-input" class="setting-input" style="margin-top:0;" placeholder="新しいルーティンを追加...">
-                    <button class="base-btn" style="background:var(--fm-blue); color:#fff; padding:0 15px;" onclick="addRoutine()">＋</button>
+            <button class="flex-center base-btn emergency-btn" onclick="toggleSOS(true)">EMERGENCY SOS</button>
+        </div>
+
+        <div id="global-settings-modal" class="hidden flex-center">
+            <div class="global-setting-card">
+                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--text-main);">⚙️ System Settings</div>
+                
+                <div style="margin-bottom: 15px;">
+                    <span style="font-size: 0.9rem; color: #555; font-weight: bold;">Gemini API Key</span>
+                    <input type="password" id="api-key-input" style="width: 100%; padding: 12px; border-radius: 10px; border: 1px solid #ccc; background: #fafafa; color: #333; box-sizing: border-box; font-size: 1rem; margin-top: 8px;" placeholder="AIzaSy...">
+                    <div style="font-size: 0.75rem; color: #888; margin-top: 5px;">※APIキーはブラウザにのみ保存され、外部には送信されません。</div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 30px;">
+                    <button class="base-btn" style="flex:1; padding:12px; background:#ddd; color:#333;" onclick="closeGlobalSettings(false)">キャンセル</button>
+                    <button class="base-btn" style="flex:1; padding:12px; background:var(--tm-cyan); color:#fff;" onclick="closeGlobalSettings(true)">保存</button>
                 </div>
             </div>
+        </div>
+
+        <div id="taskgo-screen" class="screen hidden">
+            <div class="header"><div class="screen-title">Task Go</div></div>
+            <div class="content-width" style="display:flex; gap:10px;">
+                <input type="text" id="task-input" class="ts-input" placeholder="やりたいことを入力..." onkeypress="if(event.key==='Enter')addTask()">
+                <button class="base-btn" style="padding:0 20px; background:var(--ts-green); color:#fff;" onclick="addTask()">Add</button>
+            </div>
+            <div class="content-width"><ul id="task-list" class="ts-list"></ul></div>
+            <div class="content-width">
+                <button id="analyze-btn" class="base-btn ts-analyze-btn" onclick="analyzeTasks()" disabled>Analyze</button>
+            </div>
+            <div id="suggestion-area" class="content-width hidden" style="background:#fff; border:4px solid var(--ts-green); border-radius:20px; padding:20px;">
+                <div style="color:var(--ts-green); font-weight:800; text-align:center; margin-bottom:15px;">🚀 AI OPTIMIZED ROUTE</div>
+                <div id="suggestion-steps" style="line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap;"></div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button id="copy-btn" class="base-btn" style="flex: 2; padding:12px; background:var(--ts-blue); color:#fff;" onclick="copyTasks()">📋 結果をコピー</button>
+                    <button class="base-btn" style="flex: 1; padding:12px; background:#ddd; color:#333;" onclick="resetTaskGo()">🔄 リセット</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="bemagical-screen" class="screen hidden">
+            <div class="header" style="border-bottom: 1px solid rgba(0,191,255,0.2);">
+                <div class="screen-title">Be Magical!</div>
+                <span class="setting-icon" onclick="openMagicSettings()">⚙️</span>
+            </div>
             
-            <div style="display: flex; gap: 10px; margin-top: 20px;">
-                <button class="base-btn" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); color:#fff;" onclick="closeMagicSettings(false)">キャンセル</button>
-                <button class="base-btn" style="flex:1; padding:12px; background:var(--fm-gold); color:#000;" onclick="closeMagicSettings(true)">保存</button>
+            <div id="fireworks-container" class="hidden">
+                <div class="firework fw1"></div>
+                <div class="firework fw2"></div>
+                <div class="firework fw3"></div>
+            </div>
+
+            <div class="content-width fm-card" style="text-align: center; position: relative; z-index: 10;">
+                <div style="color:var(--fm-blue); font-size: 0.9rem;">✨ NEXT IN-PARK UNTIL...</div>
+                <div id="countdown-val" style="font-size: 3.5rem; font-weight: 900; color: var(--fm-gold); margin: 10px 0;">-- Days</div>
+            </div>
+            
+            <div class="content-width fm-card" style="position: relative; z-index: 10;">
+                <div style="color:var(--fm-blue); font-weight: bold; margin-bottom: 15px;">✨ DAILY CONDITIONING</div>
+                <div id="routine-container"></div>
             </div>
         </div>
-    </div>
 
-    <div id="journal-screen" class="screen hidden">
-        <div class="header"><div class="screen-title">Journal</div></div>
-        <div class="content-width flex-center" style="gap:10px;">
-            <button class="base-btn cc-time-btn" onclick="startJournal(0.5, this)">30s</button>
-            <button class="base-btn cc-time-btn" onclick="startJournal(3, this)">3m</button>
-            <button class="base-btn cc-time-btn" onclick="startJournal(5, this)">5m</button>
-        </div>
-        <div id="j-timer" style="font-size:2.5rem; margin-top:15px; color:var(--cc-dark); font-weight:300;">00:00</div>
-        
-        <div class="content-width"><textarea id="journal-input" placeholder="頭の中のキャッシュを全て書き出してください..." disabled></textarea></div>
-        <div id="journal-counter-display">これまでに海に流した思考: 0回</div>
+        <div id="magic-settings-modal" class="hidden flex-center">
+            <div class="magic-setting-card">
+                <div style="font-size: 1.2rem; font-weight: bold; margin-bottom: 20px; text-align: center; color: var(--fm-gold);">⚙️ Magic Settings</div>
+                
+                <div style="margin-bottom: 15px;">
+                    <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">インパーク予定日</span>
+                    <input type="date" id="setting-date" class="setting-input" value="2026-06-12">
+                </div>
+                
+                <div style="margin-bottom: 20px;">
+                    <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold;">花火の演出時間 (秒)</span>
+                    <input type="number" id="setting-fw-time" class="setting-input" min="1" max="10" value="3">
+                </div>
 
-        <div id="j-msg" class="hidden" style="text-align:center; color:var(--cc-dark); margin-top:20px;">
-            <div style="font-size:2rem;">🌊</div>
-            <div style="font-weight:bold;">思考は海へと溶けました。</div>
-        </div>
-    </div>
-
-    <div id="scan-screen" class="screen hidden">
-        <div class="header"><div class="screen-title">SCAN SYSTEM</div></div>
-        <div class="content-width sc-panel">
-            <div style="color:var(--sc-turq-light); font-size:0.8rem; margin-bottom:10px;">[ AWAITING COGNITIVE INPUT ]</div>
-            <textarea id="scan-input" rows="4" placeholder="現在の状況・感情を入力してください..."></textarea>
-            <button id="scan-execute-btn" class="base-btn" style="width:100%; margin-top:15px; padding:15px; background:var(--sc-turq); color:#000;" onclick="runScan()">EXECUTE SCAN</button>
-        </div>
-        <div id="scan-res" class="content-width sc-panel hidden" style="margin-top:30px; border-style:double; position:relative;">
-            <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--sc-bg); padding:0 10px; color:var(--sc-turq); font-size:0.8rem;">AI REFRAMED</div>
-            <div id="scan-res-text" style="line-height:1.6; font-size:0.95rem; white-space: pre-wrap; text-align: left;"></div>
-        </div>
-    </div>
-    <div id="breathe-overlay" class="hidden flex-center">
-        <div style="color:var(--sc-turq); text-align:center; margin-bottom:40px;">[ SYNCING HEART RATE ]<br><span style="font-weight:normal; opacity:0.7;">自律神経を同期しています...</span></div>
-        <div id="b-circle" class="breathe-circle flex-center">...</div>
-    </div>
-
-    <div id="mood-screen" class="screen hidden">
-        <div class="header"><div class="screen-title">Mood Log</div></div>
-        
-        <div class="content-width ml-card">
-            <div style="font-weight:bold; text-align:center; margin-bottom: 10px;">「10段階で、心の痛みは？」</div>
-            <div id="ml-scale-area" class="ml-scale"></div>
-        </div>
-        
-        <div class="content-width ml-card">
-            <div style="font-weight:bold;">感性タグ（今の気分に近いもの）</div>
-            <div class="ml-tag-grid">
-                <span class="ml-tag" onclick="this.classList.toggle('active')">モヤモヤ</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">ワクワク</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">イライラ</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">どんより</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">凪</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">焦り</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">無気力</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">安らぎ</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">悲しみ</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">プレッシャー</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">達成感</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">孤独</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">自己嫌悪</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">スッキリ</span>
-                <span class="ml-tag" onclick="this.classList.toggle('active')">ドバドバ</span>
+                <div style="margin-bottom: 20px; padding-top: 15px; border-top: 1px solid rgba(0,191,255,0.3);">
+                    <span style="font-size: 0.9rem; color: var(--fm-blue); font-weight: bold; display:block; margin-bottom:8px;">ルーティンの編集</span>
+                    <div id="settings-routine-list" style="max-height: 120px; overflow-y: auto; margin-bottom: 10px;"></div>
+                    <div style="display: flex; gap: 10px;">
+                        <input type="text" id="new-routine-input" class="setting-input" style="margin-top:0;" placeholder="新しいルーティンを追加...">
+                        <button class="base-btn" style="background:var(--fm-blue); color:#fff; padding:0 15px;" onclick="addRoutine()">＋</button>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 10px; margin-top: 20px;">
+                    <button class="base-btn" style="flex:1; padding:12px; background:rgba(255,255,255,0.2); color:#fff;" onclick="closeMagicSettings(false)">キャンセル</button>
+                    <button class="base-btn" style="flex:1; padding:12px; background:var(--fm-gold); color:#000;" onclick="closeMagicSettings(true)">保存</button>
+                </div>
             </div>
         </div>
-        <div class="content-width">
-            <button id="mood-execute-btn" class="base-btn" style="width:100%; padding:18px; background:var(--ml-red); color:#fff;" onclick="saveMood()">SAVE LOG</button>
-        </div>
-        
-        <div class="content-width">
-            <div style="font-weight:bold; color:#555; margin-bottom:10px;">📝 過去の記録</div>
-            <div id="mood-log-list" style="padding-bottom: 20px;">
-                <div style="text-align:center; color:#999; font-size:0.85rem;">まだ記録はありません。</div>
+
+        <div id="journal-screen" class="screen hidden">
+            <div class="header"><div class="screen-title">Journal</div></div>
+            <div class="content-width flex-center" style="gap:10px;">
+                <button class="base-btn cc-time-btn" onclick="startJournal(0.5, this)">30s</button>
+                <button class="base-btn cc-time-btn" onclick="startJournal(3, this)">3m</button>
+                <button class="base-btn cc-time-btn" onclick="startJournal(5, this)">5m</button>
+            </div>
+            <div id="j-timer" style="font-size:2.5rem; margin-top:15px; color:var(--cc-dark); font-weight:300;">00:00</div>
+            
+            <div class="content-width"><textarea id="journal-input" placeholder="頭の中のキャッシュを全て書き出してください..." disabled></textarea></div>
+            <div id="journal-counter-display">これまでに海に流した思考: 0回</div>
+
+            <div id="j-msg" class="hidden" style="text-align:center; color:var(--cc-dark); margin-top:20px;">
+                <div style="font-size:2rem;">🌊</div>
+                <div style="font-weight:bold;">思考は海へと溶けました。</div>
             </div>
         </div>
-    </div>
 
-    <div id="mood-popup" class="hidden flex-center">
-        <div class="mood-popup-card">
-            <div style="font-size: 40px;">（⚫︎ー⚫︎）</div>
-            <div id="mood-popup-msg" style="margin: 20px 0; font-weight: bold; color: #555; line-height: 1.6; white-space: pre-wrap;"></div>
-            <button class="base-btn" style="padding: 10px 30px; background: var(--ml-blue); color: #fff;" onclick="document.getElementById('mood-popup').classList.add('hidden')">OK</button>
-        </div>
-    </div>
-
-    <div id="sos-overlay" class="screen flex-center hidden" onclick="toggleSOS(false)">
-        <div class="ticker-wrapper" style="top:calc(60px + env(safe-area-inset-top));">
-            <div class="ticker-text">
-                WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
-                WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
+        <div id="scan-screen" class="screen hidden">
+            <div class="header"><div class="screen-title">SCAN SYSTEM</div></div>
+            <div class="content-width sc-panel">
+                <div style="color:var(--sc-turq-light); font-size:0.8rem; margin-bottom:10px;">[ AWAITING COGNITIVE INPUT ]</div>
+                <textarea id="scan-input" rows="4" placeholder="現在の状況・感情を入力してください..."></textarea>
+                <button id="scan-execute-btn" class="base-btn" style="width:100%; margin-top:15px; padding:15px; background:var(--sc-turq); color:#000;" onclick="runScan()">EXECUTE SCAN</button>
+            </div>
+            <div id="scan-res" class="content-width sc-panel hidden" style="margin-top:30px; border-style:double; position:relative;">
+                <div style="position:absolute; top:-12px; left:50%; transform:translateX(-50%); background:var(--sc-bg); padding:0 10px; color:var(--sc-turq); font-size:0.8rem;">AI REFRAMED</div>
+                <div id="scan-res-text" style="line-height:1.6; font-size:0.95rem; white-space: pre-wrap; text-align: left;"></div>
             </div>
         </div>
-        <div style="font-size:60px;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
-        <div style="text-align:center; color:#546e7a; margin-top:20px; line-height:1.8; font-weight: bold;">大丈夫ですよ。<br>ゆっくりと深呼吸をしましょう。</div>
-        <div class="ticker-wrapper" style="bottom:calc(60px + env(safe-area-inset-bottom));">
-            <div class="ticker-text">
-                Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
-                Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
+        <div id="breathe-overlay" class="hidden flex-center">
+            <div style="color:var(--sc-turq); text-align:center; margin-bottom:40px;">[ SYNCING HEART RATE ]<br><span style="font-weight:normal; opacity:0.7;">自律神経を同期しています...</span></div>
+            <div id="b-circle" class="breathe-circle flex-center">...</div>
+        </div>
+
+        <div id="mood-screen" class="screen hidden">
+            <div class="header"><div class="screen-title">Mood Log</div></div>
+            
+            <div class="content-width ml-card">
+                <div style="font-weight:bold; text-align:center; margin-bottom: 10px;">「10段階で、心の痛みは？」</div>
+                <div id="ml-scale-area" class="ml-scale"></div>
+            </div>
+            
+            <div class="content-width ml-card">
+                <div style="font-weight:bold;">感性タグ（今の気分に近いもの）</div>
+                <div class="ml-tag-grid">
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">モヤモヤ</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">ワクワク</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">イライラ</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">どんより</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">凪</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">焦り</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">無気力</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">安らぎ</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">悲しみ</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">プレッシャー</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">達成感</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">孤独</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">自己嫌悪</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">スッキリ</span>
+                    <span class="ml-tag" onclick="this.classList.toggle('active')">ドバドバ</span>
+                </div>
+            </div>
+            <div class="content-width">
+                <button id="mood-execute-btn" class="base-btn" style="width:100%; padding:18px; background:var(--ml-red); color:#fff;" onclick="saveMood()">SAVE LOG</button>
+            </div>
+            
+            <div class="content-width">
+                <div style="font-weight:bold; color:#555; margin-bottom:10px;">📝 過去の記録</div>
+                <div id="mood-log-list" style="padding-bottom: 20px;">
+                    <div style="text-align:center; color:#999; font-size:0.85rem;">まだ記録はありません。</div>
+                </div>
             </div>
         </div>
-    </div>
 
-    <nav class="bottom-nav">
+        <div id="mood-popup" class="hidden flex-center">
+            <div class="mood-popup-card">
+                <div style="font-size: 40px;">（⚫︎ー⚫︎）</div>
+                <div id="mood-popup-msg" style="margin: 20px 0; font-weight: bold; color: #555; line-height: 1.6; white-space: pre-wrap;"></div>
+                <button class="base-btn" style="padding: 10px 30px; background: var(--ml-blue); color: #fff;" onclick="document.getElementById('mood-popup').classList.add('hidden')">OK</button>
+            </div>
+        </div>
+
+        <div id="sos-overlay" class="screen flex-center hidden" onclick="toggleSOS(false)">
+            <div class="ticker-wrapper" style="top:calc(60px + env(safe-area-inset-top));">
+                <div class="ticker-text">
+                    WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
+                    WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ WARNING ・ 
+                </div>
+            </div>
+            <div style="font-size:60px;">（<span class="baymax-eye">⚫︎</span>ー<span class="baymax-eye">⚫︎</span>）</div>
+            <div style="text-align:center; color:#546e7a; margin-top:20px; line-height:1.8; font-weight: bold;">大丈夫ですよ。<br>ゆっくりと深呼吸をしましょう。</div>
+            <div class="ticker-wrapper" style="bottom:calc(60px + env(safe-area-inset-bottom));">
+                <div class="ticker-text">
+                    Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
+                    Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ Let's stop and take a deep breath. ・ 
+                </div>
+            </div>
+        </div>
+
+    </div><nav class="bottom-nav">
         <div class="nav-item active" onclick="switchTab('home-screen', this)">🏠<span>Home</span></div>
         <div class="nav-item" onclick="switchTab('taskgo-screen', this)">📋<span>Task</span></div>
         <div class="nav-item" onclick="switchTab('scan-screen', this)">👁️<span>Scan</span></div>
@@ -382,7 +379,7 @@
 
 <script>
     // ==========================================
-    // 🔑 GEMINI API KEY MANAGEMENT
+    // 🔑 GEMINI API KEY MANAGEMENT (CORS & Error Handling 強化版)
     // ==========================================
     const LOCAL_STORAGE_KEY = 'anchor_gemini_api_key';
     
@@ -402,7 +399,6 @@
         document.getElementById('global-settings-modal').classList.add('hidden');
     };
 
-    // CORS回避のために「cors-anywhere」プロキシを経由するよう修正
     async function callGeminiAPI(promptText) {
         const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!apiKey) {
@@ -410,36 +406,45 @@
             return "※APIキーが設定されていません。";
         }
         
-        // 1. Google APIの本来のURL
         const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`;
         
-        // 2. CORS回避用プロキシURL
-        const proxyUrl = 'https://cors-anywhere.herokuapp.com/';
-        const fetchUrl = proxyUrl + targetUrl;
+        // より安定した代替プロキシ（cors-anywhereが弾かれる場合への対応）
+        const proxyUrl = 'https://api.allorigins.win/raw?url=';
+        const fetchUrl = proxyUrl + encodeURIComponent(targetUrl);
         
         try {
             const response = await fetch(fetchUrl, {
                 method: "POST",
                 headers: { 
-                    "Content-Type": "application/json",
-                    "X-Requested-With": "XMLHttpRequest"
+                    "Content-Type": "application/json"
                 },
                 body: JSON.stringify({ contents: [{ parts: [{ text: promptText }] }] })
             });
+
+            // レスポンスのステータスチェック
+            if (!response.ok) {
+                console.error("HTTP Error:", response.status, response.statusText);
+                return `【通信エラー】APIサーバーからの応答がありませんでした。(Status: ${response.status})\nAPIキーが正しいか、またはプロキシの制限の可能性があります。`;
+            }
+
             const data = await response.json();
             
+            // データ構造の欠落チェック（ここで落ちている可能性が高い）
             if (data.error) {
                 console.error("API Error Response:", data.error);
-                alert(`APIエラーが発生しました: ${data.error.message}`);
-                return "APIキーの権限エラー、またはプロキシの制限に引っかかりました。";
+                return `【APIエラー】\n${data.error.message}\n(Code: ${data.error.code})`;
             }
+
+            if (!data.candidates || !data.candidates[0] || !data.candidates[0].content || !data.candidates[0].content.parts) {
+                console.error("Unexpected Data Structure:", data);
+                return "【データパースエラー】\nAPIからの返答が予期せぬ形式でした。コンソールを確認してください。";
+            }
+
             return data.candidates[0].content.parts[0].text;
             
         } catch (error) {
-            console.error("Fetch Error:", error);
-            // エラー原因がプロキシの未承認である可能性が高いため、その案内を出す
-            alert("通信エラーが発生しました。\n\n※iPhoneでのCORS制限によるものです。一度Safariで「https://cors-anywhere.herokuapp.com/corsdemo」を開き、『Request temporary access to the demo server』ボタンを押してから再度お試しください。");
-            return "通信エラーが発生しました。上記の手順でプロキシのアクセス許可を行ってください。";
+            console.error("Fetch/Network Error:", error);
+            return `【ネットワークエラー】\n詳細: ${error.message}\n\n※セキュリティ制限で通信がブロックされました。iPhoneの場合はブラウザの制限によるものです。`;
         }
     }
 
@@ -459,7 +464,9 @@
         el.classList.add('active');
         if(id !== 'journal-screen') resetJournal();
         if(id === 'bemagical-screen') calcCountdown();
-        window.scrollTo(0,0);
+        
+        const activeScreen = document.getElementById(id);
+        if(activeScreen) activeScreen.scrollTo(0,0);
     };
 
     // --- Baymax Auto Quote (10秒ごと) ---
