@@ -591,4 +591,105 @@
         input.disabled = false; input.value = ''; input.classList.remove('fog-fade'); msg.classList.add('hidden'); input.focus();
         let tl = m * 60; clearInterval(jTimer);
         jTimer = setInterval(() => {
-            tl--;
+            tl--; 
+            document.getElementById('j-timer').innerText = `${String(Math.floor(tl/60)).padStart(2,'0')}:${String(tl%60).padStart(2,'0')}`;
+            if(tl<=0) { 
+                clearInterval(jTimer); input.disabled=true; input.classList.add('fog-fade'); 
+                journalCount++; document.getElementById('journal-counter-display').innerText = `これまでに海に流した思考: ${journalCount}回`;
+                setTimeout(()=>msg.classList.remove('hidden'), 4000); 
+            }
+        }, 1000);
+    };
+    const resetJournal = () => { clearInterval(jTimer); document.getElementById('journal-input').value=''; document.getElementById('j-timer').innerText='00:00'; };
+
+    // --- Scan (AI Integration) ---
+    const runScan = () => {
+        const text = document.getElementById('scan-input').value; if(!text) return;
+        const ov = document.getElementById('breathe-overlay'), c = document.getElementById('b-circle'), btn = document.getElementById('scan-execute-btn');
+        btn.disabled = true;
+        ov.classList.remove('hidden'); ov.style.display = 'flex'; c.innerText = "吸って...";
+        setTimeout(()=> { c.style.transform = 'scale(1.8)'; }, 100);
+        setTimeout(()=> { c.innerText = "吐いて..."; c.style.transform = 'scale(1)'; }, 4000);
+        setTimeout(async ()=> {
+            ov.classList.add('hidden');
+            document.getElementById('scan-res').classList.remove('hidden');
+            document.getElementById('scan-res-text').innerHTML = '<div class="loading-text" style="text-align:center;">スキャン中...</div>';
+            
+            const prompt = `あなたはケア・ロボットのベイマックスです。医療マネージャーとして忙しく働くユーザーが、以下の状況や感情を入力しました。
+            これに対して、適切なリラックス法を提示してください。
+            【条件】
+            ・医療ロボットとしての視点と優しさを持ち、ディズニーの世界観（ディズニーリゾートやキャラクター、またはサウナでのリラックスなど）を少しだけ交えること。
+            ・前頭前野を休ませるようなアドバイスをすること。
+            ・比喩は多用せず、読み手に寄り添いながらも端的な表現にすること。回りくどい表現は厳禁。
+            【入力】: ${text}`;
+            
+            const result = await callGeminiAPI(prompt);
+            document.getElementById('scan-res-text').innerText = result;
+            btn.disabled = false;
+        }, 8000);
+    };
+
+    // --- Mood Log (AI Integration) ---
+    let moodLogs = [];
+    const mlArea = document.getElementById('ml-scale-area');
+    const faces = ["😊","🙂","😐","😑","😕","😟","😣","😖","😫","😭"];
+    for(let i=1; i<=10; i++){
+        mlArea.insertAdjacentHTML('beforeend', `<div class="ml-box" onclick="selectMood(this)"><div class="face">${faces[i-1]}</div><div>${i}</div></div>`);
+    }
+    const selectMood = (el) => { document.querySelectorAll('.ml-box').forEach(b=>b.classList.remove('active')); el.classList.add('active'); };
+    
+    const saveMood = async () => { 
+        const activeBox = document.querySelector('.ml-box.active');
+        if(!activeBox) return alert("10段階で気分を選択してください。");
+        
+        const btn = document.getElementById('mood-execute-btn');
+        btn.disabled = true;
+        btn.innerText = "AIが分析中...";
+
+        const score = activeBox.querySelector('div:last-child').innerText;
+        const tags = Array.from(document.querySelectorAll('.ml-tag.active')).map(t => t.innerText);
+        
+        const d = new Date();
+        const dateStr = `${d.getMonth()+1}/${d.getDate()} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;
+        moodLogs.unshift({ date: dateStr, score, tags });
+        renderMoodLogs();
+
+        const prompt = `あなたはケア・ロボットのベイマックスです。多忙な医療マネージャーのユーザーが、今の気分を記録しました。
+        【心の痛み（10段階）】: ${score}
+        【選んだタグ】: ${tags.length > 0 ? tags.join(', ') : 'なし'}
+        この状態に対する適切な対処法や労いの言葉を教えてください。
+        【条件】
+        ・ベイマックスの口調で。
+        ・端的に、読み手に寄り添う表現で。回りくどい言い回しは避けること。`;
+
+        const aiMessage = await callGeminiAPI(prompt);
+
+        document.getElementById('mood-popup-msg').innerText = aiMessage;
+        document.getElementById('mood-popup').classList.remove('hidden');
+        document.getElementById('mood-popup').style.display = 'flex';
+
+        document.querySelectorAll('.ml-box, .ml-tag').forEach(el => el.classList.remove('active'));
+        btn.innerText = "SAVE LOG";
+        btn.disabled = false;
+    };
+
+    const renderMoodLogs = () => {
+        const container = document.getElementById('mood-log-list');
+        if(moodLogs.length === 0) return;
+        
+        container.innerHTML = moodLogs.map(log => `
+            <div style="background:#fff; border:1px solid #ddd; padding:12px; border-radius:12px; margin-bottom:8px;">
+                <div style="display:flex; justify-content:space-between; align-items:center;">
+                    <span style="font-weight:bold; color:var(--ml-red);">Score: ${log.score}</span>
+                    <span style="font-size:0.8rem; color:#888;">${log.date}</span>
+                </div>
+                <div style="margin-top:5px; font-size:0.85rem; color:#555;">
+                    ${log.tags.length > 0 ? log.tags.map(t => `<span style="background:rgba(33,150,243,0.1); color:var(--ml-blue); padding:2px 6px; border-radius:10px; margin-right:5px; display:inline-block; margin-bottom:4px;">${t}</span>`).join('') : 'タグなし'}
+                </div>
+            </div>
+        `).join('');
+    };
+
+</script>
+</body>
+</html>
