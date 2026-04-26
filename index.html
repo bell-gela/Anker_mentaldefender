@@ -389,6 +389,7 @@
         document.getElementById('global-settings-modal').classList.add('hidden');
     };
 
+    // 404対策：安定稼働の v1beta と -latest を指定
     async function callGeminiAPI(promptText) {
         const apiKey = localStorage.getItem(LOCAL_STORAGE_KEY);
         if (!apiKey) {
@@ -396,8 +397,7 @@
             return "※APIキーが設定されていません。";
         }
         
-        // 直接Google APIを叩く（v1）
-        const url = `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+        const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}`;
         
         try {
             const response = await fetch(url, {
@@ -409,21 +409,24 @@
             if (!response.ok) {
                 const errData = await response.json().catch(() => ({}));
                 console.error("HTTP Error:", response.status, errData);
-                return `【通信エラー (${response.status})】\nAPIキーが間違っているか、Google CloudでAPIが有効化されていません。`;
+                if (response.status === 404) {
+                    return `【404エラー】\nモデルが見つかりません。APIキーのプロジェクトでGemini APIが有効になっているか確認してください。`;
+                }
+                return `【通信エラー (${response.status})】\nAPIキーが間違っているか、制限されています。`;
             }
 
             const data = await response.json();
             
             if (data.error) {
                 console.error("API Error Response:", data.error);
-                return `【APIエラー】\n${data.error.message}\n(Code: ${data.error.code})`;
+                return `【APIエラー】\n${data.error.message}`;
             }
 
             return data.candidates[0].content.parts[0].text;
             
         } catch (error) {
             console.error("Fetch/Network Error:", error);
-            return `【ネットワークエラー】\n通信がブロックされました。\n※iPhoneのファイルアプリ等から開いている場合、iOSのセキュリティ制限(CORS)によりAPI通信が遮断されます。このツールはサーバーにデプロイして使用してください。`;
+            return `【ネットワークエラー】\n通信がブロックされました。\n※iPhone等のセキュリティ制限(CORS)の可能性があります。`;
         }
     }
 
@@ -533,7 +536,6 @@
                 if (data.date === today) {
                     myRoutines = data.routines;
                 } else {
-                    // 日付が変わったらチェックだけ外す
                     myRoutines = data.routines.map(r => ({ ...r, checked: false }));
                     saveRoutines();
                 }
@@ -614,7 +616,6 @@
         }
     };
     
-    // 初期化時にルーティンをロード
     loadRoutines();
 
     // --- Journal ---
